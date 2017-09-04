@@ -1,7 +1,40 @@
 doctype html
-html
-  head
-    title= title
-    link(rel='stylesheet', href='/stylesheets/style.css')
-  body
-    block content
+html(lang="en")
+head
+  meta(charset="UTF-8")
+  meta(name="viewport", content="width=device-width, initial-scale=1.0")
+  meta(http-equiv="X-UA-Compatible", content="ie=edge")
+  title= title
+  link(rel="stylesheet", href="/bootstrap-3.3.7-dist/css/bootstrap.min.css")
+  script(src="/javascripts/jquery-3.2.1.min.js")
+  script(src="/bootstrap-3.3.7-dist/js/bootstrap.min.js")  
+  link(rel="stylesheet", href="/stylesheets/style.css")
+body
+  .container-fluid
+    .row
+      .col-sm-2
+        block sidebar
+          ul.sidebar-nav
+            li
+              a(href='/catalog') Home
+            li
+              a(href='/catalog/books') All books
+            li
+              a(href='/catalog/authors') All authors
+            li
+              a(href='/catalog/genres') All genres
+            li
+              a(href='/catalog/bookinstances') All book-instances 
+            li
+              hr 
+            li
+              a(href='/catalog/author/create') Create new author
+            li
+              a(href='/catalog/genre/create') Create new genre
+            li
+              a(href='/catalog/book/create') Create new book
+            li
+              a(href='/catalog/bookinstance/create') Create new book instance 
+      .col-sm-10
+        block content       
+  

@@ -1,4 +1,6 @@
+var moment = require('moment');
 var mongoose = require('mongoose');
+
 
 var Schema = mongoose.Schema;
 
@@ -22,5 +24,47 @@ AuthorSchema
     .get(function(){
         return '/catalog/author/' + this._id;
     });
+AuthorSchema
+    .virtual('lifespan')
+    .get(function () {
+        var lifetime_string='';
+        if (this.date_of_birth) {
+            lifetime_string=moment(this.date_of_birth).format('YYYY-MM-DD');
+        }
+        lifetime_string+=' - ';
+        if (this.date_of_death) {
+            lifetime_string+=moment(this.date_of_death).format('YYYY-MM-DD');
+        }
+        return lifetime_string
+    });
+
+//virtual for formatting author's DoB, defining the function so that it returns a blank string for missing dates
+AuthorSchema
+    .virtual('date_of_birth_formatted')
+    .get(function(){
+        return this.date_of_birth ?
+        moment(this.date_of_birth).format('MMM-Do-YYYY') : ''
+    });
+
+AuthorSchema
+    .virtual('date_of_death_formatted')
+    .get(function(){
+        return this.date_of_birth ?
+        moment(this.date_of_death).format('MMM-Do-YYYY') : ''
+    })
+
+AuthorSchema
+    .virtual('dob')
+    .get(function(){
+        return this.date_of_birth ?
+        moment(this.date_of_birth).format('YYYY-MM-DD') : ''
+    });
+
+AuthorSchema
+    .virtual('dod')
+    .get(function(){
+        return this.date_of_death ?
+        moment(this.date_of_death).format('YYYY-MM-DD') : ''
+    })
 
 module.exports =mongoose.model('Author', AuthorSchema);

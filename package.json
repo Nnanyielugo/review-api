@@ -6,16 +6,12 @@
     "start": "node app.js"
   },
   "dependencies": {
-    "async": "^2.5.0",
-    "body-parser": "~1.0.0",
-    "cookie-parser": "~1.0.1",
-    "debug": "~0.7.4",
-    "express": "~4.0.0",
-    "express-validator": "^3.0.0",
-    "jade": "~1.3.0",
-    "moment": "^2.18.1",
-    "mongoose": "^4.11.9",
-    "morgan": "~1.0.0",
-    "serve-favicon": "^2.4.3"
+    "body-parser": "^1.19.0",
+    "cookie-parser": "^1.4.5",
+    "express": "^4.17.1",
+    "express-validator": "^6.4.1",
+    "moment": "^2.25.3",
+    "mongoose": "^5.9.13",
+    "morgan": "^1.10.0"
   }
 }

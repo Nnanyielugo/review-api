@@ -1,11 +1,12 @@
-var express = require('express');
-var router = express.Router();
+const express = require('express');
+
+const router = express.Router();
 
 // Require controller modules
-var book_controller = require('../services/book');
-var author_controller = require('../services/author');
-var genre_controller = require('../services/genre');
-var book_instance_controller = require('../services/book-instance');
+const book_controller = require('../services/book');
+const author_controller = require('../services/author');
+const genre_controller = require('../services/genre');
+const book_instance_controller = require('../services/book-instance');
 
 // BOOK ROUTES //
 router.get('/', book_controller.index);

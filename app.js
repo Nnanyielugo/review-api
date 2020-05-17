@@ -4,17 +4,21 @@ const logger = require('morgan');
 const cookieParser = require('cookie-parser');
 const bodyParser = require('body-parser');
 const helmet = require('helmet');
+const methodOverride = require('method-override');
 
 require('./api/db');
 const api = require('./api/routes');
 
 const app = express();
+const isProduction = process.env.NODE_ENV === 'production';
+
 
 app.use(helmet());
 app.use(logger('dev'));
 app.use(bodyParser.json());
 app.use(bodyParser.urlencoded({ extended: false }));
 app.use(cookieParser());
+app.use(methodOverride());
 app.use(express.static(path.join(__dirname, 'public')));
 
 app.use('/api', api);
@@ -30,12 +34,14 @@ app.use((req, res, next) => {
 
 // development error handler
 // will print stacktrace
-if (app.get('env') === 'development') {
+if (!isProduction) {
   app.use((err, req, res, next) => {
     res.status(err.status || 500);
-    res.render('error', {
-      message: err.message,
-      error: err,
+    res.json({
+      error: {
+        message: err.message,
+        error: err,
+      },
     });
   });
 }
@@ -44,9 +50,11 @@ if (app.get('env') === 'development') {
 // no stacktraces leaked to user
 app.use((err, req, res, next) => {
   res.status(err.status || 500);
-  res.render('error', {
-    message: err.message,
-    error: {},
+  res.json({
+    error: {
+      message: err.message,
+      error: {},
+    },
   });
 });
 

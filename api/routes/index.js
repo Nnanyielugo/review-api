@@ -4,9 +4,9 @@ const author = require('./author');
 const book = require('./book');
 const genre = require('./genre');
 
-router.use('/author', author);
-router.use('/book', book);
-router.use('/genre', genre);
+router.use('/authors', author);
+router.use('/books', book);
+router.use('/genres', genre);
 
 // handle validation error messages
 //    TODO: verify

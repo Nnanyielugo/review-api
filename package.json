@@ -1,21 +1,27 @@
 {
   "name": "library",
-  "version": "0.0.1",
+  "version": "0.1.1",
   "private": true,
   "scripts": {
-    "start": "node app.js"
+    "start": "node app.js",
+    "lint": "eslint --fix ."
   },
   "dependencies": {
-    "async": "^2.5.0",
-    "body-parser": "~1.0.0",
-    "cookie-parser": "~1.0.1",
-    "debug": "~0.7.4",
-    "express": "~4.0.0",
-    "express-validator": "^3.0.0",
-    "jade": "~1.3.0",
-    "moment": "^2.18.1",
-    "mongoose": "^4.11.9",
-    "morgan": "~1.0.0",
-    "serve-favicon": "^2.4.3"
+    "@babel/core": "^7.9.6",
+    "@babel/preset-env": "^7.9.6",
+    "@babel/register": "^7.9.0",
+    "body-parser": "^1.19.0",
+    "config": "^3.3.1",
+    "cookie-parser": "^1.4.5",
+    "cors": "^2.8.5",
+    "express": "^4.17.1",
+    "moment": "^2.25.3",
+    "mongoose": "^5.9.13",
+    "morgan": "^1.10.0"
+  },
+  "devDependencies": {
+    "eslint": "^6.8.0",
+    "eslint-config-airbnb-base": "^14.1.0",
+    "eslint-plugin-import": "^2.20.2"
   }
 }

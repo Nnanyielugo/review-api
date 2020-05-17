@@ -64,4 +64,5 @@ AuthorSchema
       ? moment(this.date_of_death).format('YYYY-MM-DD') : '';
   });
 
-module.exports = mongoose.model('Author', AuthorSchema);
+const Author = mongoose.model('Author', AuthorSchema);
+module.exports = Author;

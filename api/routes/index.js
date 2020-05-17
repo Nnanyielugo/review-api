@@ -1,8 +1,12 @@
 const router = require('express').Router();
 
-const catalog = require('./catalog');
+const author = require('./author');
+const book = require('./book');
+const genre = require('./genre');
 
-router.use('/catalog', catalog);
+router.use('/author', author);
+router.use('/book', book);
+router.use('/genre', genre);
 
 // handle validation error messages
 //    TODO: verify

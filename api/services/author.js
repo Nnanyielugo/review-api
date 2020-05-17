@@ -1,218 +1,96 @@
-const async = require('async');
 const { model } = require('mongoose');
 
 const Author = model('Author');
 const Book = model('Book');
 
-exports.author_list = function (req, res, next) {
-  Author.find()
-    .sort([['family_name', 'ascending']])
-    .exec((err, list_author) => {
-      if (err) {
-        return next(err);
-      }
-      res.render('author_list', {
-        title: 'Author List',
-        author_list: list_author,
-      });
-    });
+exports.list = function (req, res, next) {
+  return Author.find()
+    .sort({ family_name: 'ascending' })
+    .then((list) => res.status(200).json({ authors: list }))
+    .catch(next);
 };
 
-// display detail page for a specific Author
-// The method uses async.parallel() to query the Author and their associated Book instances in parallel, with the callback rendering the page when (if) both requests complete successfully
-exports.author_detail = function (req, res, next) {
-  async.parallel({
-    author(callback) {
-      Author.findById(req.params.id)
-        .exec(callback);
-    },
-    authors_books(callback) {
-      Book.find({ author: req.params.id }, 'title summary')
-        .exec(callback);
-    },
-  }, (err, results) => {
-    if (err) {
-      return next(err);
-    }
-    res.render('author_detail', {
-      title: 'Author Detail',
-      author: results.author,
-      author_books: results.authors_books,
-    });
-  });
+exports.detail = function (req, res, next) {
+  const author = Author
+    .findById(req.params.id)
+    .exec();
+
+  const author_books = Book
+    .find({ author: req.params.id })
+    .select('title summary')
+    .exec();
+
+  return Promise
+    .all([author, author_books])
+    .then(([found_author, found_author_books]) => res.status(200).json({
+      author: found_author,
+      books: found_author_books,
+    }))
+    .catch(next);
 };
 
-// display Auhor create form on GET
-exports.author_create_get = function (req, res, next) {
-  res.render('author_form', { title: 'Create Author' });
-};
+exports.create = function (req, res, next) {
+  // TODO: backend form validation
 
-// handle Author create on POST
-exports.author_create_post = function (req, res, next) {
-  req.checkBody('first_name', 'First name must be specified.').notEmpty();
-  req.checkBody('family_name', 'Family name must be specified.').notEmpty();
-  req.checkBody('family_name', 'Family name must be alphanumeric text').isAlpha();
-  req.checkBody('date_of_birth', 'Invalid date').optional({ checkFalsy: true }).isDate();
-  req.checkBody('date_of_death', 'Invalid date').optional({ checkFalsy: true }).isDate();
-
-  req.sanitize('first_name').escape();
-  req.sanitize('family_name').escape();
-  req.sanitize('first_name').trim();
-  req.sanitize('family_name').trim();
-  req.sanitize('date_of_birth').toDate();
-  req.sanitize('date_of_death').toDate();
-
-  const errors = req.validationErrors();
+  // const author = new Author({
+  //   first_name: req.body.first_name,
+  //   family_name: req.body.family_name,
+  //   date_of_birth: req.body.date_of_birth,
+  //   date_of_death: req.body.date_of_death,
+  // });
 
   const author = new Author({
-    first_name: req.body.first_name,
-    family_name: req.body.family_name,
-    date_of_birth: req.body.date_of_birth,
-    date_of_death: req.body.date_of_death,
+    ...req.body,
   });
 
-  if (errors) {
-    res.render('author_form', {
-      title: 'Create Author',
-      author,
-      errors,
-    });
-    return;
-  }
-
-  // data from form is valid
-
-  author.save((err) => {
-    if (err) {
-      return next(err);
-    }
-    res.redirect(author.url);
-  });
+  return author
+    .save()
+    .then((doc) => res.status(201).json({ author: doc }))
+    .catch(next);
 };
 
-// Display Author delete form on GET
-exports.author_delete_get = function (req, res, next) {
-  async.parallel({
-    author(callback) {
-      Author.findById(req.params.id)
-        .exec(callback);
-    },
-    author_books(callback) {
-      Book.find({ author: req.params.id })
-        .exec(callback);
-    },
-  }, (err, results) => {
-    if (err) {
-      return next(err);
-    }
-    res.render('author_delete', {
-      title: 'Delete Author',
-      author: results.author,
-      author_books: results.author_books,
-    });
-  });
-};
+exports.update = function (req, res, next) {
+  // TODO:, sanitize and check data and id passed in.
 
-// Handle Author delete on POST
-exports.author_delete_post = function (req, res, next) {
-  req.checkBody('authorid', 'Author id must exist').notEmpty();
-
-  async.parallel({
-    author(callback) {
-      Author.findById(req.body.authorid)
-        .exec(callback);
-    },
-    authors_books(callback) {
-      Book.find({ author: req.body.authorid }, 'title summary')
-        .exec(callback);
-    },
-  }, (err, results) => {
-    if (err) {
-      return next(err);
-    }
-    // success
-    if (results.authors_books.length > 0) {
-      // Author has books. Render in the same way as for a GET route
-      res.render('author_delete', {
-        title: 'Delete Author',
-        author: results.author,
-        author_books: results.authors_books,
-      });
-      return;
-    }
-
-    // author has no books. Delete object and redirect to the list of authors.
-    Author.findByIdAndRemove(req.body.authorid, (err) => {
-      if (err) {
-        return next(err);
-      }
-      // if success, go to author list
-      res.redirect('/catalog/authors');
-    });
-  });
-};
-
-// Display Author update form on GET
-exports.author_update_get = function (req, res, next) {
-  req.sanitize('id').escape();
-  req.sanitize('id').trim();
-  // get author for form
-  Author.findById(req.params.id)
-    .exec((err, author) => {
-      if (err) {
-        return next(err);
-      }
-      res.render('author_form', {
-        title: 'Update Author',
-        author,
-      });
-    });
-};
-
-// Handle Author update on POST
-exports.author_update_post = function (req, res) {
-  // sanitize id passed in
-  req.sanitize('id').escape();
-  req.sanitize('id').trim();
-
-  // check other data
-  req.checkBody('first_name', 'First name must not ne empty').notEmpty();
-  req.checkBody('family_name', 'Last name must not be empty').notEmpty();
-  req.checkBody('family_name', 'Last name must be alphanumeric text').isAlpha();
-  req.checkBody('date_of_birth', 'Invalid date').optional({ checkFalsy: true }).isDate();
-  req.checkBody('date_of_death', 'Invalid date').optional({ checkFalsy: true }).isDate();
-
-  req.sanitize('first_name').escape();
-  req.sanitize('family_name').escape();
-  req.sanitize('date_of_birth').escape();
-  req.sanitize('date_of_death').escape();
-  req.sanitize('first_name').trim();
-  req.sanitize('family_name').trim();
-  req.sanitize('date_of_birth').trim();
-  req.sanitize('date_of_death').trim();
+  // const author = new Author({
+  //   first_name: req.body.first_name,
+  //   family_name: req.body.family_name,
+  //   date_of_birth: req.body.date_of_birth,
+  //   date_of_death: req.body.date_of_death,
+  //   _id: req.params.id,
+  // });
 
   const author = new Author({
-    first_name: req.body.first_name,
-    family_name: req.body.family_name,
-    date_of_birth: req.body.date_of_birth,
-    date_of_death: req.body.date_of_death,
-    _id: req.params.id,
+    ...req.body,
   });
 
-  const errors = req.validationErrors();
-  if (errors) {
-    res.render('author_form', {
-      title: 'Update Author',
-      author,
-      errors,
-    });
-  } else {
-    // data from form is valid. Update record
-    Author.findByIdAndUpdate(req.params.id, author, {}, (err, theauthor) => {
-      if (err) {
-        // return next(err);
+  return author
+    .update()
+    .then((doc) => res.status(201).json({ author: doc }))
+    .catch(next);
+};
+
+exports.delete = function (req, res, next) {
+  const author = Author
+    .findById(req.params.id)
+    .exec();
+
+  const author_books = Book
+    .find({ author: req.params.id })
+    .exec();
+
+  return Promise
+    .all([author, author_books])
+    .then(([found_author, found_author_books]) => {
+      if (found_author_books.length) {
+        return res.status(400).json({
+          message: 'Author has books. Delete first, then try again',
+        });
       }
-      res.redirect(theauthor.url);
-    });
-  }
+      return found_author
+        .remove()
+        .then(() => res.status(204))
+        .catch(next);
+    })
+    .catch(next);
 };

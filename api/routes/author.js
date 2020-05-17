@@ -3,10 +3,10 @@ const express = require('express');
 const router = express.Router();
 const author = require('../services/author');
 
-router.get('/', author.author_list);
-router.post('/', author.author_create_post);
-router.get('/:id', author.author_detail);
-router.delete('/:id', author.author_delete_post);
-router.patch('/:id', author.author_update_post);
+router.get('/', author.list);
+router.post('/', author.create);
+router.get('/:id', author.detail);
+router.patch('/:id', author.update);
+router.delete('/:id', author.delete);
 
 module.exports = router;

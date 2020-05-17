@@ -1,29 +1,27 @@
 const moment = require('moment');
 const mongoose = require('mongoose');
 
-
 const { Schema } = mongoose;
 
 const AuthorSchema = Schema({
   first_name: { type: String, required: true, max: 100 },
   family_name: { type: String, required: true, max: 100 },
-  date_of_birth: { type: Date },
-  date_of_death: { type: Date },
+  date_of_birth: Date,
+  date_of_death: Date,
 });
 
-// virtual for author's full name
 AuthorSchema
   .virtual('name')
   .get(function () {
     return `${this.family_name}, ${this.first_name}`;
   });
 
-// virtual for author's url
 AuthorSchema
   .virtual('url')
   .get(function () {
     return `/catalog/author/${this._id}`;
   });
+
 AuthorSchema
   .virtual('lifespan')
   .get(function () {
@@ -38,7 +36,6 @@ AuthorSchema
     return lifetime_string;
   });
 
-// virtual for formatting author's DoB, defining the function so that it returns a blank string for missing dates
 AuthorSchema
   .virtual('date_of_birth_formatted')
   .get(function () {

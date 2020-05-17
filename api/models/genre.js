@@ -8,8 +8,6 @@ const genreSchema = Schema({
   },
 });
 
-// virtual for genre's url
-
 genreSchema
   .virtual('url')
   .get(function () {

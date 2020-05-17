@@ -12,7 +12,6 @@ const BookInstanceSchema = Schema({
   due_back: { type: Date, default: Date.now },
 });
 
-// virtual for bookinstance's url, and date due, using moment
 BookInstanceSchema
   .virtual('url')
   .get(function () {

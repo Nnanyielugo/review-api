@@ -3,12 +3,14 @@ const path = require('path');
 const logger = require('morgan');
 const cookieParser = require('cookie-parser');
 const bodyParser = require('body-parser');
+const helmet = require('helmet');
 
 require('./api/db');
 const api = require('./api/routes');
 
 const app = express();
 
+app.use(helmet());
 app.use(logger('dev'));
 app.use(bodyParser.json());
 app.use(bodyParser.urlencoded({ extended: false }));

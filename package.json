@@ -3,7 +3,8 @@
   "version": "0.1.1",
   "private": true,
   "scripts": {
-    "start": "node app.js",
+    "start": "node app",
+    "dev": "nodemon app",
     "lint": "eslint --fix ."
   },
   "dependencies": {
@@ -19,6 +20,7 @@
     "method-override": "^3.0.0",
     "moment": "^2.25.3",
     "mongoose": "^5.9.13",
+    "mongoose-unique-validator": "^2.0.3",
     "morgan": "^1.10.0"
   },
   "devDependencies": {

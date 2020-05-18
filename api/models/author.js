@@ -6,6 +6,10 @@ const { Schema } = mongoose;
 const AuthorSchema = Schema({
   first_name: { type: String, required: true, max: 100 },
   family_name: { type: String, required: true, max: 100 },
+  // image_src
+  // followers: [{ type: Schema.Types.ObjectId }]
+  // following
+  // likes_aggregate
   date_of_birth: Date,
   date_of_death: Date,
 });
@@ -16,11 +20,6 @@ AuthorSchema
     return `${this.family_name}, ${this.first_name}`;
   });
 
-AuthorSchema
-  .virtual('url')
-  .get(function () {
-    return `/catalog/author/${this._id}`;
-  });
 
 AuthorSchema
   .virtual('lifespan')
@@ -36,33 +35,17 @@ AuthorSchema
     return lifetime_string;
   });
 
-AuthorSchema
-  .virtual('date_of_birth_formatted')
-  .get(function () {
-    return this.date_of_birth
-      ? moment(this.date_of_birth).format('MMM-Do-YYYY') : '';
-  });
-
-AuthorSchema
-  .virtual('date_of_death_formatted')
-  .get(function () {
-    return this.date_of_birth
-      ? moment(this.date_of_death).format('MMM-Do-YYYY') : '';
-  });
-
-AuthorSchema
-  .virtual('dob')
-  .get(function () {
-    return this.date_of_birth
-      ? moment(this.date_of_birth).format('YYYY-MM-DD') : '';
-  });
-
-AuthorSchema
-  .virtual('dod')
-  .get(function () {
-    return this.date_of_death
-      ? moment(this.date_of_death).format('YYYY-MM-DD') : '';
-  });
+AuthorSchema.methods.toObjectJsonFor = function (books) {
+  return {
+    id: this._id,
+    first_name: this.first_name,
+    family_name: this.family_name,
+    books,
+    date_of_birth: this.date_of_birth,
+    date_of_death: this.date_of_death,
+    lifespan: this.lifespan,
+  };
+};
 
 const Author = mongoose.model('Author', AuthorSchema);
 module.exports = Author;

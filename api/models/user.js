@@ -12,6 +12,12 @@ const UserSchema = Schema({
     unique: true,
     max: 100,
   },
+  user_type: {
+    type: String,
+    required: true,
+    enum: ['admin', 'moderator', 'user'],
+    default: 'user',
+  },
   image_src: { type: String },
   bio: String,
   date_of_birth: Date,
@@ -22,6 +28,8 @@ const UserSchema = Schema({
   salt: String,
   // favorites:
   // reviews:
+  // pinnedReviews
+  // pinnedComments // not sure
 }, { timestamps: true });
 
 UserSchema.plugin(uniqueValidator, { message: '{Path} is already taken.' });

@@ -4,9 +4,11 @@ const { secret } = require('config');
 const crypto = require('crypto');
 const jwt = require('jsonwebtoken');
 
-const { Schema } = mongoose;
+function arrayLimit(val) {
+  return val.limit >= 5;
+}
 
-const UserSchema = Schema({
+const UserSchema = new mongoose.Schema({
   first_name: { type: String, required: true, max: 100 },
   family_name: { type: String, required: true, max: 100 },
   username: {
@@ -34,14 +36,18 @@ const UserSchema = Schema({
   image_src: { type: String },
   bio: String,
   date_of_birth: Date,
-  following: [{ type: Schema.Types.ObjectId, ref: 'User' }],
-  followers: [{ type: Schema.Types.ObjectId, ref: 'User' }],
+  following: [{ type: mongoose.Schema.Types.ObjectId, ref: 'User' }],
+  followers: [{ type: mongoose.Schema.Types.ObjectId, ref: 'User' }],
   followerCount: { type: Number, default: 0 },
   hash: String,
   salt: String,
-  // favorites:
-  // reviews:
-  // pinnedReviews
+  favorites: [{ type: mongoose.Schema.Types.ObjectId, ref: 'Review' }],
+  reviews: [{ type: mongoose.Schema.Types.ObjectId, ref: 'Review' }],
+  pinnedReviews: [{
+    type: mongoose.Schema.Types.ObjectId,
+    ref: 'Review',
+    validate: [arrayLimit, '{PATH} exceeds limit of 5'],
+  }],
   // pinnedComments // not sure
 }, { timestamps: true });
 

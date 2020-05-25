@@ -13,4 +13,4 @@ db.on('disconnected', () => {
   console.log('Mongoose disconnected');
 });
 
-require('./models');
+require('../models');

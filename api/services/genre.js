@@ -37,7 +37,7 @@ exports.create = function (req, res, next) {
     .then((found_genre) => {
       if (found_genre) {
         res.status(400).json({
-          error: 'Genre already exists',
+          message: 'Genre already exists',
         });
       }
       genre

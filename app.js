@@ -6,7 +6,7 @@ const bodyParser = require('body-parser');
 const helmet = require('helmet');
 const methodOverride = require('method-override');
 
-require('./api/db');
+require('./api/middleware/db');
 const api = require('./api/routes');
 
 const app = express();

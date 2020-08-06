@@ -122,7 +122,7 @@ exports.update = function (req, res, next) {
       }
 
       if (req.author.created_by._id.toString() !== user_id.toString()) {
-        req.author.edited_by = user_id;
+        req.author.edited_by = author;
       }
 
       return author

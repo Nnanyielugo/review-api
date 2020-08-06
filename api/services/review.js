@@ -2,6 +2,7 @@ const { model } = require('mongoose');
 
 const User = model('User');
 const Review = model('Review');
+const Book = model('Book');
 
 exports.preloadReview = function (req, res, next, slug) {
   Review
@@ -103,8 +104,71 @@ exports.get = function (req, res, next) {
     .catch(next);
 };
 
-exports.create = function (req, res, next) {};
+exports.create = function (req, res, next) {
+  Promise
+    .all(
+      User
+        .findById(req.payload.id)
+        .exec(),
+      Book
+        .findById(req.body.book_id)
+        .exec(),
+    )
+    .then((results) => {
+      const [user, book] = results;
+      if (!user) {
+        return res.sendStatus(401);
+      }
 
-exports.update = function (req, res, next) {};
+      if (!book) {
+        return res.send(400).json({
+          error: {
+            message: 'The book you are trying to review does not exist!',
+          },
+        });
+      }
+
+      // TODO: handle file uploads
+
+      const review = new Review({
+        content: req.body.content,
+        tags: req.body.tags,
+        author: user,
+        book,
+      });
+
+      return review
+        .save()
+        .then(() => res.json({ review: review.toObjectJsonFor(user) }))
+        .catch(next);
+    })
+    .catch(next);
+};
+
+exports.update = function (req, res, next) {
+  User
+    .findById(req.payload.id)
+    .then((user) => {
+      if (req.review.author._id.toString() !== req.payload.id.toString()) {
+        return res.sendStatus(401);
+      }
+
+      if (typeof req.body.content !== 'undefined') {
+        req.review.content = req.body.content;
+      }
+
+      if (typeof req.body.tags !== 'undefined') {
+        req.review.tags = req.body.tags;
+      }
+
+      // TODO: implement image file paths/link
+
+      req.review
+        .save()
+        .then((review) => res.json({ review: review.toObjectJsonFor(user) }))
+        .catch(next);
+    })
+    .catch(next);
+};
 
 exports.delete = function (req, res, next) {};

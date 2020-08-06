@@ -8,7 +8,7 @@ const User = mongoose.model('user');
 const ReviewSchema = new mongoose.Schema({
   slug: { type: String, lowercase: true, unique: true },
   content: String,
-  favoritesCount: { type: Number, default: 0 },
+  favorites_count: { type: Number, default: 0 },
   comments: [{ type: mongoose.Schema.Types.ObjectId, ref: 'Comment' }],
   image_src: String, // TODO: implement array of images
   author: { type: mongoose.Schema.Types.ObjectId, ref: 'User' },
@@ -32,7 +32,7 @@ ReviewSchema.methods.updateFavoriteCount = function () {
   return User
     .count({ favorites: { $in: [post.id] } })
     .then((count) => {
-      post.favoritesCount = count;
+      post.favorites_count = count;
       return post.save();
     });
 };
@@ -45,7 +45,7 @@ ReviewSchema.methods.toObjectJsonFor = function (user) {
     updatedAt: this.updatedAt,
     image_src: this.image_src,
     favorited: user ? user.isFavorite(this._id) : false,
-    favoritesCount: this.favoritesCount,
+    favorites_count: this.favorites_count,
     author: this.author.toObjectJsonFor(user),
   };
 };

@@ -31,7 +31,7 @@ module.exports.login = (req, res, next) => {
     return res.status(422).json({ error: { message: "Email can't be blank" } });
   }
 
-  if (!req.bbody.user.password) {
+  if (!req.body.user.password) {
     return res.status(422).json({ error: { message: "Password can't be blank" } });
   }
 
@@ -58,6 +58,25 @@ module.exports.update = (req, res, next) => {
         .update(req.body.user)
         .then(() => res.json({ user: user.toAuthJsonFor() }))
         .catch(next);
+    })
+    .catch(next);
+};
+
+module.exports.suspend = (req, res, next) => {
+  User
+    .findById(req.payload.id)
+    .then((user) => {
+      if (!user) {
+        return res.status(401).json({ error: { message: 'You have to be an admin or a moderator to perform this action' } });
+      }
+      if (user.user_type !== 'admin' || user.user_type !== 'moderator') {
+        return res.sendStatus(401);
+      }
+      return user
+        .update({
+          suspended: true,
+          suspension_timeline: Date.now() + 21600000, // 6 hours
+        });
     })
     .catch(next);
 };

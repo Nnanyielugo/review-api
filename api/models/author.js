@@ -12,7 +12,7 @@ const AuthorSchema = Schema({
   // likes_aggregate
   date_of_birth: Date,
   date_of_death: Date,
-});
+}, { timestamps: true });
 
 AuthorSchema
   .virtual('name')

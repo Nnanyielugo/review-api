@@ -8,13 +8,7 @@ const BookSchema = Schema({
   summary: { type: String, required: true },
   isbn: { type: String, required: true },
   genre: [{ type: Schema.ObjectId, ref: 'Genre' }],
-});
-
-BookSchema
-  .virtual('url')
-  .get(function () {
-    return `/catalog/book/${this._id}`;
-  });
+}, { timestamps: true });
 
 const Book = mongoose.model('Book', BookSchema);
 module.exports = Book;

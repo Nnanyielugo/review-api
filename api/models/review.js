@@ -30,7 +30,7 @@ const ReviewSchema = new mongoose.Schema({
       ref: 'Comment',
     },
   ],
-  image_src: String, // TODO: implement array of images or use book image
+  // image_src: String, // TODO: implement array of images or use book image
   tags: [String],
 }, { timestamps: true });
 

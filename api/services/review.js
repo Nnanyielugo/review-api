@@ -150,7 +150,7 @@ exports.update = function (req, res, next) {
     .findById(req.payload.id)
     .then((user) => {
       if (req.review.author._id.toString() !== req.payload.id.toString()) {
-        return res.sendStatus(401);
+        return res.sendStatus(403);
       }
 
       if (typeof req.body.content !== 'undefined') {
@@ -171,4 +171,22 @@ exports.update = function (req, res, next) {
     .catch(next);
 };
 
-exports.delete = function (req, res, next) {};
+exports.delete = function (req, res, next) {
+  User
+    .findById(req.payload.id)
+    .then((user) => {
+      if (!user) {
+        return res.sendStatus(401);
+      }
+
+      if (req.review.author._id.toString() !== req.payload.id.toString()) {
+        return res.sendStatus(403);
+      }
+
+      return req.review
+        .remove()
+        .then(() => res.sendStatus(204))
+        .catch(next);
+    })
+    .catch(next);
+};

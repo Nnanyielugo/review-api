@@ -41,6 +41,11 @@ const UserSchema = new mongoose.Schema({
   follower_count: { type: Number, default: 0 },
   hash: String,
   salt: String,
+  suspended: {
+    type: Boolean,
+    default: false,
+  },
+  suspension_timeline: Date,
   favorites: [{ type: mongoose.Schema.Types.ObjectId, ref: 'Review' }],
   reviews: [{ type: mongoose.Schema.Types.ObjectId, ref: 'Review' }],
   pinned_reviews: [{

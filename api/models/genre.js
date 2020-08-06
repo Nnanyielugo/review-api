@@ -8,11 +8,5 @@ const genreSchema = Schema({
   },
 });
 
-genreSchema
-  .virtual('url')
-  .get(function () {
-    return `/catalog/genre/${this._id}`;
-  });
-
 const Genre = mongoose.model('Genre', genreSchema);
 module.exports = Genre;

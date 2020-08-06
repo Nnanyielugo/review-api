@@ -38,12 +38,12 @@ const UserSchema = new mongoose.Schema({
   date_of_birth: Date,
   following: [{ type: mongoose.Schema.Types.ObjectId, ref: 'User' }],
   followers: [{ type: mongoose.Schema.Types.ObjectId, ref: 'User' }],
-  followerCount: { type: Number, default: 0 },
+  follower_count: { type: Number, default: 0 },
   hash: String,
   salt: String,
   favorites: [{ type: mongoose.Schema.Types.ObjectId, ref: 'Review' }],
   reviews: [{ type: mongoose.Schema.Types.ObjectId, ref: 'Review' }],
-  pinnedReviews: [{
+  pinned_reviews: [{
     type: mongoose.Schema.Types.ObjectId,
     ref: 'Review',
     validate: [arrayLimit, '{PATH} exceeds limit of 5'],
@@ -93,7 +93,7 @@ UserSchema.methods.toObjectJsonFor = function (user) {
     image_src: this.image_src,
     following: user ? user.isFollowing(this._id) : false,
     followers: this.followers,
-    followerCount: this.followerCount,
+    follower_count: this.follower_count,
   };
 };
 
@@ -150,8 +150,8 @@ const User = mongoose.model('User', UserSchema);
 UserSchema.methods.updateFollowerCount = function (profile) {
   return User
     .count({ followers: { $in: [profile.id] } })
-    .then(() => {
-      profile.followerCount = profile.followers.length;
+    .then(() => { // examine how this method works, and fix where necessary
+      profile.follower_count = profile.followers.length;
       return profile.save();
     });
 };

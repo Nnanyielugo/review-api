@@ -190,3 +190,7 @@ exports.delete = function (req, res, next) {
     })
     .catch(next);
 };
+
+exports.favorite = function (req, res, next) {};
+
+exports.unfavorite = function (req, res, next) {};

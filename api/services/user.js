@@ -9,6 +9,15 @@ module.exports.get = (req, res, next) => {
       if (!user) {
         return res.sendStatus(401);
       }
+      if (user.suspended && user.suspension_timeline > Date.now()) {
+        return user
+          .update({
+            suspended: false,
+            suspension_timeline: null,
+          })
+          .then(() => res.json({ user: user.toAuthJsonFor() }))
+          .catch(next);
+      }
       return res.json({ user: user.toAuthJsonFor() });
     })
     .catch(next);

@@ -6,12 +6,31 @@ const uuid = require('uuid/dist/v4');
 const User = mongoose.model('user');
 
 const ReviewSchema = new mongoose.Schema({
-  slug: { type: String, lowercase: true, unique: true },
+  author: {
+    type: mongoose.Schema.Types.ObjectId,
+    ref: 'User',
+  },
+  slug: {
+    type: String,
+    lowercase: true,
+    unique: true,
+  },
+  book: {
+    type: mongoose.Schema.Types.ObjectId,
+    ref: 'Book',
+  },
   content: String,
-  favorites_count: { type: Number, default: 0 },
-  comments: [{ type: mongoose.Schema.Types.ObjectId, ref: 'Comment' }],
-  image_src: String, // TODO: implement array of images
-  author: { type: mongoose.Schema.Types.ObjectId, ref: 'User' },
+  favorites_count: {
+    type: Number,
+    default: 0,
+  },
+  comments: [
+    {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: 'Comment',
+    },
+  ],
+  image_src: String, // TODO: implement array of images or use book image
 }, { timestamps: true });
 
 ReviewSchema.plugin(uniqueValidator, { message: '{Path} is already taken.' });

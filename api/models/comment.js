@@ -2,8 +2,14 @@ const mongoose = require('mongoose');
 
 const CommentSchema = new mongoose.Schema({
   content: String,
-  author: { type: mongoose.Schema.Types.ObjectId, ref: 'User' },
-  review: { type: mongoose.Schema.Types.ObjectId, ref: 'Review' },
+  author: {
+    type: mongoose.Schema.Types.ObjectId,
+    ref: 'User',
+  },
+  review: {
+    type: mongoose.Schema.Types.ObjectId,
+    ref: 'Review',
+  },
 }, { timestamps: true });
 
 CommentSchema.methods.toObjectJsonFor = function (user) {

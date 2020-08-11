@@ -191,6 +191,42 @@ exports.delete = function (req, res, next) {
     .catch(next);
 };
 
-exports.favorite = function (req, res, next) {};
+exports.favorite = function (req, res, next) {
+  const review_id = req.review._id;
 
-exports.unfavorite = function (req, res, next) {};
+  User
+    .findById(req.payload.id)
+    .then((user) => {
+      if (!user) {
+        return res.sendStatus(401);
+      }
+
+      return user
+        .favorite(review_id)
+        .then(() => req.review
+          .updateFavoriteCount()
+          .then((review) => res.json({ review: review.toObjectJsonFor(user) })))
+        .catch(next);
+    })
+    .catch(next);
+};
+
+exports.unfavorite = function (req, res, next) {
+  const review_id = req.review._id;
+
+  User
+    .findById(req.payload.id)
+    .then((user) => {
+      if (!user) {
+        return res.sendStatus(401);
+      }
+
+      return user
+        .unfavorite(review_id)
+        .then(() => req.review
+          .updateFavoriteCount()
+          .then((review) => res.json({ review: review.toObjectJsonFor(user) })))
+        .catch(next);
+    })
+    .catch(next);
+};

@@ -10,6 +10,10 @@ const CommentSchema = new mongoose.Schema({
     type: mongoose.Schema.Types.ObjectId,
     ref: 'Review',
   },
+  favoriteCount: {
+    type: Number,
+    default: 0,
+  },
 }, { timestamps: true });
 
 CommentSchema.methods.toObjectJsonFor = function (user) {

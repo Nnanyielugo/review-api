@@ -120,6 +120,14 @@ exports.create = function (req, res, next) {
         return res.sendStatus(401);
       }
 
+      if (user.suspended || user.suspension_timeline > Date.now()) {
+        return res.status(400).json({
+          error: {
+            message: 'Suspended users cannot make reviews!',
+          },
+        });
+      }
+
       if (!book) {
         return res.send(400).json({
           error: {

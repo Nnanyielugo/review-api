@@ -1,6 +1,6 @@
 const router = require('express').Router();
 const reviews = require('../services/review');
-const comments = require('../services/comments');
+const comments = require('../services/comment');
 const auth = require('../middleware/auth');
 
 router.param('review', reviews.preloadReview);

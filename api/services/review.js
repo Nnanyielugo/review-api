@@ -163,7 +163,7 @@ exports.update = function (req, res, next) {
 
       // TODO: implement image file paths/link
 
-      req.review
+      return req.review
         .save()
         .then((review) => res.json({ review: review.toObjectJsonFor(user) }))
         .catch(next);

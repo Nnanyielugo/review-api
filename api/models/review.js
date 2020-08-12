@@ -48,12 +48,12 @@ ReviewSchema.methods.slugify = function () {
 };
 
 ReviewSchema.methods.updateFavoriteCount = function () {
-  const post = this;
+  const review = this;
   return User
-    .count({ favorites: { $in: [post.id] } })
+    .count({ favorites: { $in: [review.id] } })
     .then((count) => {
-      post.favorites_count = count;
-      return post.save();
+      review.favorites_count = count;
+      return review.save();
     });
 };
 

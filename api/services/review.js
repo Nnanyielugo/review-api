@@ -161,6 +161,14 @@ exports.update = function (req, res, next) {
         return res.sendStatus(403);
       }
 
+      if (user.suspended || user.suspension_timeline > Date.now()) {
+        return res.status(400).json({
+          error: {
+            message: 'Suspended users cannot make reviews!',
+          },
+        });
+      }
+
       if (typeof req.body.content !== 'undefined') {
         req.review.content = req.body.content;
       }

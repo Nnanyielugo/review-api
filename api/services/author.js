@@ -3,6 +3,24 @@ const { model } = require('mongoose');
 const Author = model('Author');
 const Book = model('Book');
 
+exports.preloadAuthor = function (req, res, next, id) {
+  Author
+    .findById(id)
+    .populate('created_by')
+    .then((author) => {
+      if (!author) {
+        return res.status(404).json({
+          error: {
+            message: 'Author does not exist',
+          },
+        });
+      }
+      req.author = author;
+      return next();
+    })
+    .catch(next);
+};
+
 exports.list = function (req, res, next) {
   return Author.find()
     .sort({ family_name: 'ascending' })
@@ -50,6 +68,8 @@ exports.create = function (req, res, next) {
     family_name: req.body.family_name,
     date_of_birth: req.body.date_of_birth,
     date_of_death: req.body.date_of_death,
+    created_by: req.payload.id,
+    bio: req.body.bio,
   });
 
   // const author = new Author({
@@ -64,26 +84,67 @@ exports.create = function (req, res, next) {
 
 exports.update = function (req, res, next) {
   // TODO:, sanitize and check data and id passed in.
+  const user_id = req.payload.id;
+  Author
+    .findById(req.payload.id)
+    .then((author) => {
+      if (!author) {
+        return res.sendStatus(404);
+      }
+      if (
+        (req.author.created_by._id.toString() !== user_id.toString())
+          && (req.author.user_type !== 'admin')
+      ) {
+        return res.status(401).json({
+          error: {
+            message: 'You must either be author author or an admin to edit this author',
+          },
+        });
+      }
+      if (typeof req.body.first_name !== 'undefined') {
+        req.author.first_name = req.body.first_name;
+      }
 
-  const author = new Author({
-    first_name: req.body.first_name,
-    family_name: req.body.family_name,
-    date_of_birth: req.body.date_of_birth,
-    date_of_death: req.body.date_of_death,
-    _id: req.params.id,
-  });
+      if (typeof req.body.last_name !== 'undefined') {
+        req.author.last_name = req.body.last_name;
+      }
 
-  // const author = new Author({
-  //   ...req.body,
-  // });
+      if (typeof req.body.date_of_birth !== 'undefined') {
+        req.author.date_of_birth = req.body.date_of_birth;
+      }
 
-  return author
-    .update()
-    .then((doc) => res.status(201).json({ author: doc }))
+      if (typeof req.body.date_of_death !== 'undefined') {
+        req.author.date_of_death = req.body.date_of_death;
+      }
+
+      if (typeof req.body.bio !== 'undefined') {
+        req.author.bio = req.body.bio;
+      }
+
+      if (req.author.created_by._id.toString() !== user_id.toString()) {
+        req.author.edited_by = author;
+      }
+
+      return author
+        .update()
+        .then((doc) => res.status(201).json({ author: doc }))
+        .catch(next);
+    })
     .catch(next);
 };
 
 exports.delete = function (req, res, next) {
+  const user_id = req.payload.id;
+  if (
+    (req.author.created_by._id.toString() !== user_id.toString())
+      && (req.author.user_type !== 'admin')
+  ) {
+    return res.status(401).json({
+      error: {
+        message: 'You must either be author author or an admin to delete this author',
+      },
+    });
+  }
   const author = Author
     .findById(req.params.id)
     .exec();
@@ -97,7 +158,9 @@ exports.delete = function (req, res, next) {
     .then(([found_author, found_author_books]) => {
       if (found_author_books.length) {
         return res.status(400).json({
-          message: 'Author has books. Delete first, then try again',
+          error: {
+            message: 'Author has books. Delete first, then try again',
+          },
         });
       }
       return found_author

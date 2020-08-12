@@ -12,6 +12,15 @@ const AuthorSchema = Schema({
   // likes_aggregate
   date_of_birth: Date,
   date_of_death: Date,
+  created_by: {
+    type: Schema.Types.ObjectId,
+    ref: 'User',
+  },
+  edited_by: {
+    type: Schema.Types.ObjectId,
+    ref: 'User',
+  },
+  bio: String,
 }, { timestamps: true });
 
 AuthorSchema

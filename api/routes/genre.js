@@ -1,12 +1,11 @@
-const express = require('express');
-
-const router = express.Router();
+const router = require('express').Router();
 const genre = require('../services/genre');
+const auth = require('../middleware/auth');
 
-router.get('/', genre.list);
-router.get('/:genre', genre.detail);
-router.post('/', genre.create);
-router.patch('/:genre', genre.update);
-router.delete('/:genre', genre.delete);
+router.get('/', auth.optional, genre.list);
+router.get('/:genre', auth.optional, genre.detail);
+router.post('/', auth.required, genre.create);
+router.patch('/:genre', auth.required, genre.update);
+router.delete('/:genre', auth.required, genre.delete);
 
 module.exports = router;

@@ -14,7 +14,7 @@ const BookSchema = Schema({
   genre: [{ type: Schema.Types.ObjectId, ref: 'Genre' }],
   reviews: [{
     type: Schema.Types.ObjectId,
-    ref: 'Comment',
+    ref: 'Review',
   }],
 }, { timestamps: true });
 

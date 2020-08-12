@@ -49,7 +49,15 @@ exports.create = function (req, res, next) {
     .findById(req.payload.id)
     .then((user) => {
       if (!user) {
-        res.sendStatus(401);
+        return res.sendStatus(401);
+      }
+
+      if (user.suspended || user.suspension_timeline > Date.now()) {
+        return res.status(400).json({
+          error: {
+            message: 'Suspended users cannot leave comments!',
+          },
+        });
       }
 
       const comment = new Comment(req.body.comment);

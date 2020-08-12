@@ -158,6 +158,46 @@ exports.delete = function (req, res, next) {
     .then(() => res.sendStatus(204));
 };
 
-exports.favorite = function (req, res, next) {};
+exports.favorite = function (req, res, next) {
+  const comment_id = req.comment._id;
 
-exports.unfavorite = function (req, res, next) {};
+  User
+    .findById(req.payload.id)
+    .then((user) => {
+      if (!user) {
+        return res.sendStatus(401);
+      }
+
+      return user
+        .favorite(comment_id)
+        .then(() => req.comment
+          .updateFavoriteCount()
+          .then((comment) => res.json({
+            comment: comment.toObjectJsonFor(user),
+          })))
+        .catch(next);
+    })
+    .catch(next);
+};
+
+exports.unfavorite = function (req, res, next) {
+  const comment_id = req.comment._id;
+
+  User
+    .findById(req.payload.id)
+    .then((user) => {
+      if (!user) {
+        return res.sendStatus(401);
+      }
+
+      return user
+        .unfavorite(comment_id)
+        .then(() => req.comment
+          .updateFavoriteCount()
+          .then((comment) => res.json({
+            comment: comment.toObjectJsonFor(user),
+          })))
+        .catch(next);
+    })
+    .catch(next);
+};

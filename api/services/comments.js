@@ -84,12 +84,20 @@ exports.update = function (req, res, next) {
     .findById(req.payload.id)
     .then((user) => {
       if (!user) {
-        req.sendStatus(401);
+        return req.sendStatus(401);
       }
 
       const comment_author_id = req.comment.author._id;
       if (comment_author_id.toString() !== req.payload.id.toString()) {
-        res.sendStatus(403);
+        return res.sendStatus(403);
+      }
+
+      if (user.suspended || user.suspension_timeline > Date.now()) {
+        return res.status(400).json({
+          error: {
+            message: 'Suspended users cannot edit comments!',
+          },
+        });
       }
 
       Comment

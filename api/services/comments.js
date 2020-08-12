@@ -114,6 +114,8 @@ exports.update = function (req, res, next) {
           return comment
             .update(req.body.comment)
             .then((_comment) => {
+              // TODO: explore better ways to remove comment from review
+              // req.review.comments.update(req.comment._id)
               const comment_index = req.review.comments.findIndex((revComment) => revComment._id === _comment._id);
               if (comment_index < 0) {
                 return res.status(404).json({
@@ -138,7 +140,23 @@ exports.update = function (req, res, next) {
     .catch(next);
 };
 
-exports.delete = function (req, res, next) {};
+exports.delete = function (req, res, next) {
+  const author_id = req.comment_author_id;
+  if (author_id.toString() !== req.payload.toString()) {
+    res.sendStatus(401);
+  }
+
+  req.review.comments.remove(req.comment._id);
+  return req.review
+    .save()
+    .then(
+      Comment
+        .findByIdAndRemove(req.comment._id)
+        .exec()
+        .catch(next),
+    )
+    .then(() => res.sendStatus(204));
+};
 
 exports.favorite = function (req, res, next) {};
 

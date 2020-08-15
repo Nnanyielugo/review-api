@@ -1,0 +1,5 @@
+--require test/mocha.env.js
+--require app.js
+--timeout 3000
+--use_strict
+--exit

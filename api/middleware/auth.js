@@ -15,12 +15,14 @@ const auth = {
     secret,
     userProperty: 'payload',
     getToken: getTokenFromHeader,
+    algorithms: ['RS256'],
   }),
   optional: jwt({
     secret,
     userProperty: 'payload',
     credentialsRequired: false,
     getToken: getTokenFromHeader,
+    algorithms: ['RS256'],
   }),
 };
 

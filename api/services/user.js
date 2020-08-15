@@ -1,6 +1,6 @@
 const User = require('mongoose').model('User');
-const passport = require('passport');
 
+const passport = require('passport');
 
 module.exports.get = (req, res, next) => {
   User

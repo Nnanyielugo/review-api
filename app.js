@@ -41,7 +41,7 @@ app.use((req, res, next) => {
 
 // development error handler, will print stacktrace
 if (!isProduction) {
-  app.use((err, req, res, next) => {
+  app.use((err, _req, res, _next) => {
     res.status(err.status || 500);
     res.json({
       error: {
@@ -54,7 +54,7 @@ if (!isProduction) {
 
 // production error handler
 // no stacktraces leaked to user
-app.use((err, req, res, next) => {
+app.use((err, _req, res, _next) => {
   res.status(err.status || 500);
   res.json({
     error: {

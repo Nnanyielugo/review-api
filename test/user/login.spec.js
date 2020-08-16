@@ -5,9 +5,7 @@ const { MongoMemoryServer } = require('mongodb-memory-server');
 const app = require('../../app');
 const { valid_signup_user, valid_login, invalid_login } = require('./mocks');
 
-
 chai.use(chaiHttp);
-
 const { expect } = chai;
 
 describe('Login tests', () => {
@@ -18,6 +16,7 @@ describe('Login tests', () => {
     const mongoUri = await mongoServer.getUri();
     await mongoose.connect(mongoUri);
 
+    // register user
     await chai
       .request(app)
       .post('/api/users/')

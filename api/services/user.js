@@ -25,11 +25,29 @@ module.exports.get = (req, res, next) => {
 
 module.exports.signup = (req, res, next) => {
   const user = new User();
-  user.username = req.body.username;
-  user.email = req.body.email;
-  user.setPassword(req.body.password);
+  user.username = req.body.user.username;
+  user.email = req.body.user.email;
+  user.first_name = req.body.user.first_name;
+  user.family_name = req.body.user.family_name;
+  user.setPassword(req.body.user.password);
 
-  user
+
+  if (
+    !req.body.user.username
+      || !req.body.user.password
+      || !req.body.user.email
+      || !req.body.user.first_name
+      || !req.body.user.family_name
+  ) {
+    // generic error message since there will be frontend validation
+    return res.status(400).json({
+      error: {
+        message: 'Required form values need to be complete!',
+      },
+    });
+  }
+
+  return user
     .save()
     .then(() => res.json({ user: user.toAuthJsonFor() }))
     .catch(next);

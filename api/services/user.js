@@ -1,15 +1,16 @@
 const User = require('mongoose').model('User');
 const passport = require('passport');
+const user_utils = require('../utils/user_utils');
 
 module.exports.get = async (req, res, next) => {
   try {
-    const user = await User.findById(req.params.id);
+    let user = await User.findById(req.params.id);
     if (!user) {
       return res.sendStatus(401);
     }
 
     if (user.suspended && user.suspension_timeline > Date.now()) {
-      await user.update({
+      user = await User.findByIdAndUpdate().update({
         suspended: false,
         suspension_timeline: null,
       });
@@ -37,6 +38,13 @@ module.exports.signup = async (req, res, next) => {
     user.first_name = req.body.user.first_name;
     user.family_name = req.body.user.family_name;
     user.setPassword(req.body.user.password);
+    if (req.body.user.give_admin_priviledges) {
+      user.user_type = 'admin';
+    }
+
+    if (req.body.user.give_mod_priviledges) {
+      user.user_type = 'moderator';
+    }
 
     if (
       !req.body.user.username
@@ -76,6 +84,9 @@ module.exports.login = (req, res, next) => {
     if (!user) {
       return res.status(422).json(info);
     }
+    if (user.suspended && user.suspension_timeline > Date.now()) {
+      user_utils.unsuspend_user(user._id);
+    }
     user.token = user.generateJwt();
     return res.json({ user: user.toAuthJsonFor() });
   })(req, res, next);
@@ -83,12 +94,14 @@ module.exports.login = (req, res, next) => {
 
 module.exports.update = async (req, res, next) => {
   try {
-    const user = await User.findById(req.payload.id);
+    const user = await User.findByIdAndUpdate(req.payload.id, req.body.user, { new: true });
     if (!user) {
       return res.sendStatus(401);
     }
 
-    await user.update(req.body.user);
+    // console.log('modded', user)
+
+    // await user.update(req.body.user);
     return res.json({ user: user.toAuthJsonFor() });
   } catch (err) {
     next(err);
@@ -97,13 +110,15 @@ module.exports.update = async (req, res, next) => {
 
 module.exports.suspend = async (req, res, next) => {
   try {
-    const user = await User.findById(req.payload.id);
-    if (!user) {
+    const super_user = await User.findById(req.payload.id);
+    if (!super_user) {
       return res.sendStatus(401);
     }
-    if (user.user_type !== 'admin' || user.user_type !== 'moderator') {
+    if (super_user.user_type !== 'admin' || super_user.user_type !== 'moderator') {
       return res.status(401).json({ error: { message: 'You have to be an admin or a moderator to perform this action' } });
     }
+
+    const user = await User.findById(req.body.id);
 
     await user.update({
       suspended: true,

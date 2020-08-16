@@ -22,6 +22,12 @@ app.use(cookieParser());
 app.use(methodOverride());
 app.use(express.static(path.join(__dirname, 'public')));
 
+app.get('/', (req, res, next) => {
+  res.status(200).json({
+    message: 'You have reached the library api',
+  });
+});
+
 app.use('/api', api);
 
 // / catch 404 and forward to error handler
@@ -31,10 +37,9 @@ app.use((req, res, next) => {
   next(err);
 });
 
-// / error handlers
+// error handlers
 
-// development error handler
-// will print stacktrace
+// development error handler, will print stacktrace
 if (!isProduction) {
   app.use((err, req, res, next) => {
     res.status(err.status || 500);
@@ -63,3 +68,5 @@ app.set('port', process.env.PORT || 3000);
 const server = app.listen(app.get('port'), () => {
   console.log(`Server listening on port: ${server.address().port}`);
 });
+
+module.exports = app;

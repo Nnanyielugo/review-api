@@ -12,10 +12,10 @@ const api = require('./api/routes');
 
 const app = express();
 const isProduction = process.env.NODE_ENV === 'production';
-
+const isTest = process.env.NODE_ENV === 'test';
 
 app.use(helmet());
-app.use(logger('dev'));
+if (!isTest) app.use(logger('dev'));
 app.use(bodyParser.json());
 app.use(bodyParser.urlencoded({ extended: false }));
 app.use(cookieParser());

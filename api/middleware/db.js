@@ -3,7 +3,12 @@ const { dbUrl } = require('config');
 
 const isTest = process.env.NODE_ENV === 'test';
 
-mongoose.connect(dbUrl);
+const options = {
+  useFindAndModify: false,
+  useNewUrlParser: true,
+};
+
+mongoose.connect(dbUrl, options);
 const db = mongoose.connection;
 if (!isTest) {
   db.on('connected', () => {

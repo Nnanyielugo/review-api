@@ -14,7 +14,11 @@ describe('Login tests', () => {
   beforeEach(async () => {
     mongoServer = new MongoMemoryServer();
     const mongoUri = await mongoServer.getUri();
-    await mongoose.connect(mongoUri);
+    const options = {
+      useFindAndModify: false,
+      useNewUrlParser: true,
+    };
+    await mongoose.connect(mongoUri, options);
 
     // register user
     await chai

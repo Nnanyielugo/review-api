@@ -2,4 +2,5 @@
 --require app.js
 --timeout 3000
 --use_strict
+--recursive
 --exit

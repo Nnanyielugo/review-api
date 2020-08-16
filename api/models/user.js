@@ -33,7 +33,7 @@ const UserSchema = new mongoose.Schema({
     enum: ['admin', 'moderator', 'user'],
     default: 'user',
   },
-  // image_src: { type: String },
+  image_src: { type: String },
   bio: String,
   date_of_birth: Date,
   following: [{ type: mongoose.Schema.Types.ObjectId, ref: 'User' }],
@@ -82,12 +82,13 @@ UserSchema.methods.generateJwt = function () {
 
 UserSchema.methods.toAuthJsonFor = function () {
   return {
-    id: this._id,
+    _id: this._id,
     username: this.username,
     email: this.email,
     token: this.generateJwt(),
     bio: this.bio,
-    // image_src: this.image_src,
+    followers: this.followers,
+    image_src: this.image_src,
   };
 };
 

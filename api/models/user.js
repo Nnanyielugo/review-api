@@ -13,10 +13,10 @@ const UserSchema = new mongoose.Schema({
   family_name: { type: String, required: true, max: 100 },
   username: {
     type: String,
-    required: true,
+    required: [true, "can't be blank"],
     unique: true,
     max: 100,
-    match: [/^[a-zA-Z0-9]+$/, 'is invalid'],
+    // match: [/^[a-zA-Z0-9]+$/, 'is invalid'],
     index: true,
   },
   email: {
@@ -33,7 +33,7 @@ const UserSchema = new mongoose.Schema({
     enum: ['admin', 'moderator', 'user'],
     default: 'user',
   },
-  image_src: { type: String },
+  // image_src: { type: String },
   bio: String,
   date_of_birth: Date,
   following: [{ type: mongoose.Schema.Types.ObjectId, ref: 'User' }],
@@ -87,7 +87,7 @@ UserSchema.methods.toAuthJsonFor = function () {
     email: this.email,
     token: this.generateJwt(),
     bio: this.bio,
-    image_src: this.image_src,
+    // image_src: this.image_src,
   };
 };
 

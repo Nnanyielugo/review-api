@@ -1,7 +1,5 @@
 const chai = require('chai');
 const chaiHttp = require('chai-http');
-// const mongoose = require('mongoose');
-// const { MongoMemoryServer } = require('mongodb-memory-server');
 const app = require('../app');
 
 chai.use(chaiHttp);

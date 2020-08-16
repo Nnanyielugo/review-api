@@ -3,7 +3,7 @@ const passport = require('passport');
 
 module.exports.get = async (req, res, next) => {
   try {
-    const user = await User.findById(req.payload.id);
+    const user = await User.findById(req.params.id);
     if (!user) {
       return res.sendStatus(401);
     }
@@ -13,10 +13,17 @@ module.exports.get = async (req, res, next) => {
         suspended: false,
         suspension_timeline: null,
       });
-
-      return res.json({ user: user.toAuthJsonFor() });
     }
-    return res.json({ user: user.toAuthJsonFor() });
+
+    // change returned object depending on who is making the request
+    if (req.payload) {
+      if (req.payload.id.toString() === user._id.toString()) {
+        return res.json({ user: user.toAuthJsonFor() });
+      }
+      const viewing_user = await User.findById(req.payload.id);
+      return res.json({ user: user.toObjectJsonFor(viewing_user) });
+    }
+    return res.json({ user: user.toObjectJsonFor() });
   } catch (err) {
     next(err);
   }
@@ -92,10 +99,10 @@ module.exports.suspend = async (req, res, next) => {
   try {
     const user = await User.findById(req.payload.id);
     if (!user) {
-      return res.status(401).json({ error: { message: 'You have to be an admin or a moderator to perform this action' } });
+      return res.sendStatus(401);
     }
     if (user.user_type !== 'admin' || user.user_type !== 'moderator') {
-      return res.sendStatus(401);
+      return res.status(401).json({ error: { message: 'You have to be an admin or a moderator to perform this action' } });
     }
 
     await user.update({

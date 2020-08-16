@@ -89,6 +89,10 @@ UserSchema.methods.toAuthJsonFor = function () {
     bio: this.bio,
     followers: this.followers,
     image_src: this.image_src,
+    first_name: this.first_name,
+    family_name: this.family_name,
+    user_type: this.user_type,
+    suspended: this.suspended,
   };
 };
 
@@ -100,6 +104,8 @@ UserSchema.methods.toObjectJsonFor = function (user) {
     following: user ? user.isFollowing(this._id) : false,
     followers: this.followers,
     follower_count: this.follower_count,
+    first_name: this.first_name,
+    family_name: this.family_name,
   };
 };
 

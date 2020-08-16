@@ -3,7 +3,10 @@ const chaiHttp = require('chai-http');
 const mongoose = require('mongoose');
 const { MongoMemoryServer } = require('mongodb-memory-server');
 const app = require('../../app');
-const { valid_signup_user, invalid_signup_no_email } = require('./mocks');
+const {
+  valid_signup_user, invalid_signup_no_email,
+  admin_signup_user, moderator_signup_user,
+} = require('./mocks');
 
 chai.use(chaiHttp);
 const { expect } = chai;
@@ -13,7 +16,11 @@ describe('Signup tests', () => {
   beforeEach(async () => {
     mongoServer = new MongoMemoryServer();
     const mongoUri = await mongoServer.getUri();
-    await mongoose.connect(mongoUri);
+    const options = {
+      useFindAndModify: false,
+      useNewUrlParser: true,
+    };
+    await mongoose.connect(mongoUri, options);
   });
 
   afterEach(async () => {
@@ -22,17 +29,49 @@ describe('Signup tests', () => {
   });
 
   describe('passing tests', () => {
-    it('successfully registers user', async () => {
+    it('successfully registers regular user', async () => {
       const response = await chai
         .request(app)
         .post('/api/users/')
         .send({ user: valid_signup_user });
 
+      const returnedUser = response.body.user;
       expect(response.body.error).to.be.undefined;
       expect(response.status).to.equal(200);
-      expect(response.body.user.username).to.equal(valid_signup_user.username);
-      expect(response.body.user.email).to.equal(valid_signup_user.email);
-      expect(response.body.user.token).to.exist;
+      expect(returnedUser.username).to.equal(valid_signup_user.username);
+      expect(returnedUser.email).to.equal(valid_signup_user.email);
+      expect(returnedUser.token).to.exist;
+      expect(returnedUser.user_type).to.equal('user');
+    });
+
+    it('successfully registers admin user', async () => {
+      const response = await chai
+        .request(app)
+        .post('/api/users/')
+        .send({ user: admin_signup_user });
+
+      const returnedUser = response.body.user;
+      expect(response.body.error).to.be.undefined;
+      expect(response.status).to.equal(200);
+      expect(returnedUser.username).to.equal(admin_signup_user.username);
+      expect(returnedUser.email).to.equal(admin_signup_user.email);
+      expect(returnedUser.token).to.exist;
+      expect(returnedUser.user_type).to.equal('admin');
+    });
+
+    it('successfully registers moderator', async () => {
+      const response = await chai
+        .request(app)
+        .post('/api/users/')
+        .send({ user: moderator_signup_user });
+
+      const returnedUser = response.body.user;
+      expect(response.body.error).to.be.undefined;
+      expect(response.status).to.equal(200);
+      expect(returnedUser.username).to.equal(moderator_signup_user.username);
+      expect(returnedUser.email).to.equal(moderator_signup_user.email);
+      expect(returnedUser.token).to.exist;
+      expect(returnedUser.user_type).to.equal('moderator');
     });
   });
 

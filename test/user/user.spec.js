@@ -5,13 +5,13 @@ const { MongoMemoryServer } = require('mongodb-memory-server');
 const app = require('../../app');
 const {
   valid_signup_user, modified_user,
-  admin_signup_user,
+  admin_signup_user, alternate_signup_user,
 } = require('./mocks');
 
 chai.use(chaiHttp);
 const { expect } = chai;
 
-describe('User tests', () => {
+describe.only('User tests', () => {
   let mongoServer;
   let user;
   let admin;
@@ -29,6 +29,7 @@ describe('User tests', () => {
       .request(app)
       .post('/api/users/')
       .send({ user: valid_signup_user });
+    // register admin
     const admin_resp = await chai
       .request(app)
       .post('/api/users/')
@@ -46,7 +47,7 @@ describe('User tests', () => {
     it('fetches the auth user object when viewing own profile', async () => {
       const response = await chai
         .request(app)
-        .get(`/api/users/user/${user._id}`)
+        .get(`/api/users/${user._id}`)
         .set('authorization', `Bearer ${user.token}`)
         .send();
 
@@ -59,7 +60,7 @@ describe('User tests', () => {
     it('fetches the user object when viewing profile as other user', async () => {
       const response = await chai
         .request(app)
-        .get(`/api/users/user/${user._id}`)
+        .get(`/api/users/${user._id}`)
         .send();
 
       const returnedUser = response.body.user;
@@ -74,7 +75,7 @@ describe('User tests', () => {
     it('edits the user', async () => {
       const response = await chai
         .request(app)
-        .patch('/api/users/user')
+        .patch(`/api/users/${user._id}`)
         .set('authorization', `Bearer ${user.token}`)
         .send({ user: modified_user });
 
@@ -89,7 +90,7 @@ describe('User tests', () => {
     it('suspends the user', async () => {
       const response = await chai
         .request(app)
-        .post('/api/users/user/suspend')
+        .post(`/api/users/${user._id}/suspend`)
         .set('authorization', `Bearer ${admin.token}`)
         .send({ user: { _id: user._id } });
 
@@ -99,6 +100,43 @@ describe('User tests', () => {
       expect(returnedUser.first_name).to.equal(user.first_name);
       expect(returnedUser.family_name).to.equal(user.family_name);
       expect(returnedUser.suspended).to.be.true;
+    });
+  });
+
+  describe('failing tests', () => {
+    let alternate_user;
+    beforeEach(async () => {
+      const _user_resp = await chai
+        .request(app)
+        .post('/api/users/')
+        .send({ user: alternate_signup_user });
+      alternate_user = _user_resp.body.user;
+    });
+
+    it('returns an error when another user tried to edit a user profile', async () => {
+      const response = await chai
+        .request(app)
+        .patch(`/api/users/${user._id}`)
+        .set('authorization', `Bearer ${alternate_user.token}`);
+
+      const responseBody = response.body;
+      expect(response.status).to.equal(400);
+      expect(responseBody.error).to.exist;
+      expect(responseBody.error.message).to.equal("Cannot edit another user's profile!");
+    });
+
+    it('returns an error when a non super user tries to suspend another user', async () => {
+      const response = await chai
+        .request(app)
+        .post(`/api/users/${user._id}/suspend`)
+        .set('authorization', `Bearer ${alternate_user.token}`)
+        .send({ user: { _id: user._id } });
+
+      const responseBody = response.body;
+      expect(response.status).to.equal(401);
+      expect(responseBody.user).to.be.undefined;
+      expect(responseBody.error).to.exist;
+      expect(responseBody.error.message).to.equal('You have to be an admin or a moderator to perform this action');
     });
   });
 });

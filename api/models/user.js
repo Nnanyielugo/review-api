@@ -16,7 +16,7 @@ const UserSchema = new mongoose.Schema({
     required: [true, "can't be blank"],
     unique: true,
     max: 100,
-    // match: [/^[a-zA-Z0-9]+$/, 'is invalid'],
+    match: [/^[a-zA-Z0-9_@]+$/, 'is invalid'],
     index: true,
   },
   email: {
@@ -106,6 +106,7 @@ UserSchema.methods.toObjectJsonFor = function (user) {
     follower_count: this.follower_count,
     first_name: this.first_name,
     family_name: this.family_name,
+    suspended: this.suspended,
   };
 };
 

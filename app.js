@@ -12,15 +12,21 @@ const api = require('./api/routes');
 
 const app = express();
 const isProduction = process.env.NODE_ENV === 'production';
-
+const isTest = process.env.NODE_ENV === 'test';
 
 app.use(helmet());
-app.use(logger('dev'));
+if (!isTest) app.use(logger('dev'));
 app.use(bodyParser.json());
 app.use(bodyParser.urlencoded({ extended: false }));
 app.use(cookieParser());
 app.use(methodOverride());
 app.use(express.static(path.join(__dirname, 'public')));
+
+app.get('/', (req, res, next) => {
+  res.status(200).json({
+    message: 'You have reached the library api',
+  });
+});
 
 app.use('/api', api);
 
@@ -31,12 +37,11 @@ app.use((req, res, next) => {
   next(err);
 });
 
-// / error handlers
+// error handlers
 
-// development error handler
-// will print stacktrace
+// development error handler, will print stacktrace
 if (!isProduction) {
-  app.use((err, req, res, next) => {
+  app.use((err, _req, res, _next) => {
     res.status(err.status || 500);
     res.json({
       error: {
@@ -49,7 +54,7 @@ if (!isProduction) {
 
 // production error handler
 // no stacktraces leaked to user
-app.use((err, req, res, next) => {
+app.use((err, _req, res, _next) => {
   res.status(err.status || 500);
   res.json({
     error: {
@@ -63,3 +68,5 @@ app.set('port', process.env.PORT || 3000);
 const server = app.listen(app.get('port'), () => {
   console.log(`Server listening on port: ${server.address().port}`);
 });
+
+module.exports = app;

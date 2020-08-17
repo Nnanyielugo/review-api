@@ -13,10 +13,10 @@ const UserSchema = new mongoose.Schema({
   family_name: { type: String, required: true, max: 100 },
   username: {
     type: String,
-    required: true,
+    required: [true, "can't be blank"],
     unique: true,
     max: 100,
-    match: [/^[a-zA-Z0-9]+$/, 'is invalid'],
+    match: [/^[a-zA-Z0-9_@]+$/, 'is invalid'],
     index: true,
   },
   email: {
@@ -82,12 +82,17 @@ UserSchema.methods.generateJwt = function () {
 
 UserSchema.methods.toAuthJsonFor = function () {
   return {
-    id: this._id,
+    _id: this._id,
     username: this.username,
     email: this.email,
     token: this.generateJwt(),
     bio: this.bio,
+    followers: this.followers,
     image_src: this.image_src,
+    first_name: this.first_name,
+    family_name: this.family_name,
+    user_type: this.user_type,
+    suspended: this.suspended,
   };
 };
 
@@ -99,6 +104,9 @@ UserSchema.methods.toObjectJsonFor = function (user) {
     following: user ? user.isFollowing(this._id) : false,
     followers: this.followers,
     follower_count: this.follower_count,
+    first_name: this.first_name,
+    family_name: this.family_name,
+    suspended: this.suspended,
   };
 };
 

@@ -1,4 +1,6 @@
-const Book = require('../models/book');
+const { model } = require('mongoose');
+
+const Book = model('Book');
 
 exports.list = function (_, res, next) {
   return Book

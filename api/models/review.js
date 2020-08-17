@@ -3,7 +3,7 @@ const uniqueValidator = require('mongoose-unique-validator');
 const slug = require('slug');
 const uuid = require('uuid/dist/v4');
 
-const User = mongoose.model('user');
+const User = mongoose.model('User');
 
 const ReviewSchema = new mongoose.Schema({
   author: {

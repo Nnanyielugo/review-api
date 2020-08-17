@@ -114,16 +114,12 @@ module.exports.suspend = async (req, res, next) => {
     if (!super_user) {
       return res.sendStatus(401);
     }
-    if (super_user.user_type !== 'admin' || super_user.user_type !== 'moderator') {
+    if (super_user.user_type !== 'admin' && super_user.user_type !== 'moderator') {
       return res.status(401).json({ error: { message: 'You have to be an admin or a moderator to perform this action' } });
     }
 
-    const user = await User.findById(req.body.id);
-
-    await user.update({
-      suspended: true,
-      suspension_timeline: Date.now() + 21600000, // 6 hours - default
-    });
+    const user = await user_utils.suspend_user(req.body.user._id);
+    return res.json({ user: user.toObjectJsonFor(user) });
   } catch (err) {
     next(err);
   }

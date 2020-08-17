@@ -11,7 +11,7 @@ const {
 chai.use(chaiHttp);
 const { expect } = chai;
 
-describe.only('User tests', () => {
+describe('User tests', () => {
   let mongoServer;
   let user;
   let admin;

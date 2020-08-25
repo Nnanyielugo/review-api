@@ -15,10 +15,12 @@ const AuthorSchema = Schema({
   created_by: {
     type: Schema.Types.ObjectId,
     ref: 'User',
+    required: true,
   },
   edited_by: {
     type: Schema.Types.ObjectId,
     ref: 'User',
+    required: true,
   },
   bio: String,
 }, { timestamps: true });

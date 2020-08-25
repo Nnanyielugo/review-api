@@ -16,11 +16,11 @@ router.use('/reviews', review);
 //    TODO: verify
 router.use((req, res, err, next) => {
   if (err.name === 'ValidationError') {
+    // keep validation errors simple
     return res.status(422).json({
-      error: Object.keys(err.errors).reduce((errors, key) => { // error key used to be 'errors'. Monitor
-        errors[key] = err.errors[key].message;
-        return errors;
-      }, {}),
+      error: {
+        message: 'Schema validation failed',
+      },
     });
   }
   return next(err);

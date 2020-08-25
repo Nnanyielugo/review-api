@@ -5,7 +5,7 @@ const { MongoMemoryServer } = require('mongodb-memory-server');
 const app = require('../app');
 const {
   valid_signup_user, modified_user,
-  admin_signup_user, alternate_signup_user,
+  admin_user, alternate_signup_user,
 } = require('./mocks/user');
 
 chai.use(chaiHttp);
@@ -33,7 +33,7 @@ describe('User tests', () => {
     const admin_resp = await chai
       .request(app)
       .post('/api/users/')
-      .send({ user: admin_signup_user });
+      .send({ user: admin_user });
     user = user_resp.body.user;
     admin = admin_resp.body.user;
   });

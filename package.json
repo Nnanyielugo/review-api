@@ -7,7 +7,8 @@
     "dev": "nodemon app",
     "lint": "eslint --fix .",
     "test": "mocha",
-    "posttest": "nyc report"
+    "posttest": "nyc report",
+    "generate-fake-data": "node test/mocks/faker-randoms/"
   },
   "dependencies": {
     "@babel/core": "^7.9.6",
@@ -19,6 +20,7 @@
     "cors": "^2.8.5",
     "express": "^4.17.1",
     "express-jwt": "^6.0.0",
+    "faker": "^5.0.0",
     "helmet": "^3.22.0",
     "jsonwebtoken": "^8.5.1",
     "method-override": "^3.0.0",

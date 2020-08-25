@@ -6,7 +6,7 @@ const app = require('../../app');
 const {
   valid_signup_user, modified_user,
   admin_signup_user, alternate_signup_user,
-} = require('./mocks');
+} = require('../mocks/user');
 
 chai.use(chaiHttp);
 const { expect } = chai;
@@ -54,7 +54,7 @@ describe('User tests', () => {
       const returnedUser = response.body.user;
       expect(returnedUser).to.be.an('object');
       expect(returnedUser.username).to.equal(valid_signup_user.username);
-      expect(returnedUser.email).to.equal(valid_signup_user.email);
+      expect(returnedUser.email).to.equal(valid_signup_user.email.toLowerCase());
     });
 
     it('fetches the user object when viewing profile as other user', async () => {
@@ -82,7 +82,7 @@ describe('User tests', () => {
       const returnedUser = response.body.user;
       expect(returnedUser).to.be.an('object');
       expect(returnedUser.username).to.equal(modified_user.username);
-      expect(returnedUser.email).to.equal(modified_user.email);
+      expect(returnedUser.email).to.equal(modified_user.email.toLowerCase());
       expect(returnedUser.first_name).to.equal(modified_user.first_name);
       expect(returnedUser.family_name).to.equal(modified_user.family_name);
     });

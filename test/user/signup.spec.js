@@ -5,8 +5,8 @@ const { MongoMemoryServer } = require('mongodb-memory-server');
 const app = require('../../app');
 const {
   valid_signup_user, invalid_signup_no_email,
-  admin_signup_user, moderator_signup_user,
-} = require('./mocks');
+  admin_user, moderator_user,
+} = require('../mocks/user');
 
 chai.use(chaiHttp);
 const { expect } = chai;
@@ -39,7 +39,7 @@ describe('Signup tests', () => {
       expect(response.body.error).to.be.undefined;
       expect(response.status).to.equal(200);
       expect(returnedUser.username).to.equal(valid_signup_user.username);
-      expect(returnedUser.email).to.equal(valid_signup_user.email);
+      expect(returnedUser.email).to.equal(valid_signup_user.email.toLowerCase());
       expect(returnedUser.token).to.exist;
       expect(returnedUser.user_type).to.equal('user');
     });
@@ -48,13 +48,13 @@ describe('Signup tests', () => {
       const response = await chai
         .request(app)
         .post('/api/users/')
-        .send({ user: admin_signup_user });
+        .send({ user: admin_user });
 
       const returnedUser = response.body.user;
       expect(response.body.error).to.be.undefined;
       expect(response.status).to.equal(200);
-      expect(returnedUser.username).to.equal(admin_signup_user.username);
-      expect(returnedUser.email).to.equal(admin_signup_user.email);
+      expect(returnedUser.username).to.equal(admin_user.username);
+      expect(returnedUser.email).to.equal(admin_user.email.toLowerCase());
       expect(returnedUser.token).to.exist;
       expect(returnedUser.user_type).to.equal('admin');
     });
@@ -63,13 +63,13 @@ describe('Signup tests', () => {
       const response = await chai
         .request(app)
         .post('/api/users/')
-        .send({ user: moderator_signup_user });
+        .send({ user: moderator_user });
 
       const returnedUser = response.body.user;
       expect(response.body.error).to.be.undefined;
       expect(response.status).to.equal(200);
-      expect(returnedUser.username).to.equal(moderator_signup_user.username);
-      expect(returnedUser.email).to.equal(moderator_signup_user.email);
+      expect(returnedUser.username).to.equal(moderator_user.username);
+      expect(returnedUser.email).to.equal(moderator_user.email.toLowerCase());
       expect(returnedUser.token).to.exist;
       expect(returnedUser.user_type).to.equal('moderator');
     });

@@ -56,9 +56,3 @@ module.exports.admin_user = admin_user;
 module.exports.moderator_user = moderator_user;
 module.exports.alternate_user = alternate_user;
 module.exports.modified_user = modified_user;
-
-console.log('user', valid_signup_user);
-console.log('admin', admin_user);
-console.log('alternate', alternate_user);
-console.log('moderator', moderator_user);
-console.log('modified user', modified_user);

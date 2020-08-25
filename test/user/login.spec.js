@@ -3,7 +3,7 @@ const chaiHttp = require('chai-http');
 const mongoose = require('mongoose');
 const { MongoMemoryServer } = require('mongodb-memory-server');
 const app = require('../../app');
-const { valid_signup_user, valid_login, invalid_login } = require('./mocks');
+const { valid_signup_user, valid_login, invalid_login } = require('../mocks/user');
 
 chai.use(chaiHttp);
 const { expect } = chai;
@@ -39,10 +39,12 @@ describe('Login tests', () => {
         .post('/api/users/login')
         .send({ user: valid_login });
 
-      expect(response.body.user).to.exist;
-      expect(response.body.user).to.be.an('object');
-      expect(response.body.user.email).to.equal(valid_login.email);
-      expect(response.body.user.username).to.equal(valid_signup_user.username);
+      const responseUser = response.body.user;
+      expect(response.body.error).to.be.undefined;
+      expect(responseUser).to.exist;
+      expect(responseUser).to.be.an('object');
+      expect(responseUser.email).to.equal(valid_login.email.toLowerCase());
+      expect(responseUser.username).to.equal(valid_signup_user.username);
     });
   });
 

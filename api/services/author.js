@@ -60,26 +60,23 @@ exports.detail = function (req, res, next) {
     .catch(next);
 };
 
-exports.create = function (req, res, next) {
-  // TODO: backend form validation
+exports.create = async function (req, res, next) {
+  try {
+    // TODO: backend form validation
+    const author = new Author({
+      first_name: req.body.first_name,
+      family_name: req.body.family_name,
+      date_of_birth: req.body.date_of_birth,
+      date_of_death: req.body.date_of_death,
+      created_by: req.payload.id,
+      bio: req.body.bio,
+    });
 
-  const author = new Author({
-    first_name: req.body.first_name,
-    family_name: req.body.family_name,
-    date_of_birth: req.body.date_of_birth,
-    date_of_death: req.body.date_of_death,
-    created_by: req.payload.id,
-    bio: req.body.bio,
-  });
-
-  // const author = new Author({
-  //   ...req.body,
-  // });
-
-  return author
-    .save()
-    .then((doc) => res.status(201).json({ author: doc }))
-    .catch(next);
+    const doc = await author.save();
+    return res.status(201).json({ author: doc });
+  } catch (err) {
+    next(err);
+  }
 };
 
 exports.update = function (req, res, next) {

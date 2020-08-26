@@ -12,18 +12,4 @@ router.use('/genres', genre);
 router.use('/users', user);
 router.use('/reviews', review);
 
-// handle validation error messages
-//    TODO: verify
-router.use((req, res, err, next) => {
-  if (err.name === 'ValidationError') {
-    // keep validation errors simple
-    return res.status(422).json({
-      error: {
-        message: 'Schema validation failed',
-      },
-    });
-  }
-  return next(err);
-});
-
 module.exports = router;

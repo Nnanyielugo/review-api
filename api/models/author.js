@@ -4,8 +4,16 @@ const mongoose = require('mongoose');
 const { Schema } = mongoose;
 
 const AuthorSchema = Schema({
-  first_name: { type: String, required: true, max: 100 },
-  family_name: { type: String, required: true, max: 100 },
+  first_name: {
+    type: String,
+    required: [true, "can't be blank"],
+    max: 100,
+  },
+  family_name: {
+    type: String,
+    required: [true, "can't be blank"],
+    max: 100,
+  },
   // image_src
   // followers: [{ type: Schema.Types.ObjectId }]
   // following
@@ -20,7 +28,6 @@ const AuthorSchema = Schema({
   edited_by: {
     type: Schema.Types.ObjectId,
     ref: 'User',
-    required: true,
   },
   bio: String,
 }, { timestamps: true });

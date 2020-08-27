@@ -14,6 +14,10 @@ const AuthorSchema = Schema({
     required: [true, "can't be blank"],
     max: 100,
   },
+  books: [{
+    type: Schema.Types.ObjectId,
+    ref: 'Book',
+  }],
   // image_src
   // followers: [{ type: Schema.Types.ObjectId }]
   // following
@@ -53,15 +57,19 @@ AuthorSchema
     return lifetime_string;
   });
 
-AuthorSchema.methods.toObjectJsonFor = function (books) {
+AuthorSchema.methods.toObjectJsonFor = function (request_author) {
   return {
-    id: this._id,
+    _id: this._id,
     first_name: this.first_name,
     family_name: this.family_name,
-    books,
+    books: this.books,
+    created_by: request_author.created_by,
+    bio: this.bio,
     date_of_birth: this.date_of_birth,
     date_of_death: this.date_of_death,
     lifespan: this.lifespan,
+    createdAt: this.createdAt,
+    updatedAt: this.updatedAt,
   };
 };
 

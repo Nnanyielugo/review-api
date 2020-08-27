@@ -2,11 +2,13 @@ const chai = require('chai');
 const chaiHttp = require('chai-http');
 const mongoose = require('mongoose');
 const { MongoMemoryServer } = require('mongodb-memory-server');
-const app = require('../../app');
+const connect_mongoose = require('../api/utils/mongoose_utils');
+
+const app = require('../app');
 const {
   valid_signup_user, invalid_signup_no_email,
   admin_user, moderator_user,
-} = require('../mocks/user');
+} = require('./mocks/user');
 
 chai.use(chaiHttp);
 const { expect } = chai;
@@ -15,12 +17,8 @@ describe('Signup tests', () => {
   let mongoServer;
   beforeEach(async () => {
     mongoServer = new MongoMemoryServer();
-    const mongoUri = await mongoServer.getUri();
-    const options = {
-      useFindAndModify: false,
-      useNewUrlParser: true,
-    };
-    await mongoose.connect(mongoUri, options);
+    const mongo_uri = await mongoServer.getUri();
+    await connect_mongoose(mongo_uri);
   });
 
   afterEach(async () => {

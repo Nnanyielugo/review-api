@@ -1,14 +1,10 @@
 const mongoose = require('mongoose');
 const { dbUrl } = require('config');
+const connect_mongoose = require('../utils/mongoose_utils');
 
 const isTest = process.env.NODE_ENV === 'test';
 
-const options = {
-  useFindAndModify: false,
-  useNewUrlParser: true,
-};
-
-mongoose.connect(dbUrl, options);
+connect_mongoose(dbUrl);
 const db = mongoose.connection;
 if (!isTest) {
   db.on('connected', () => {

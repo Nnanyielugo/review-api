@@ -2,11 +2,12 @@ const chai = require('chai');
 const chaiHttp = require('chai-http');
 const mongoose = require('mongoose');
 const { MongoMemoryServer } = require('mongodb-memory-server');
-const app = require('../../app');
+const connect_mongoose = require('../api/utils/mongoose_utils');
+const app = require('../app');
 const {
   valid_signup_user, modified_user,
-  admin_signup_user, alternate_signup_user,
-} = require('../mocks/user');
+  admin_user, alternate_signup_user,
+} = require('./mocks/user');
 
 chai.use(chaiHttp);
 const { expect } = chai;
@@ -17,13 +18,8 @@ describe('User tests', () => {
   let admin;
   beforeEach(async () => {
     mongoServer = new MongoMemoryServer();
-    const mongoUri = await mongoServer.getUri();
-    const options = {
-      useFindAndModify: false,
-      useNewUrlParser: true,
-    };
-    await mongoose.connect(mongoUri, options);
-
+    const mongo_uri = await mongoServer.getUri();
+    await connect_mongoose(mongo_uri);
     // register user
     const user_resp = await chai
       .request(app)
@@ -33,7 +29,7 @@ describe('User tests', () => {
     const admin_resp = await chai
       .request(app)
       .post('/api/users/')
-      .send({ user: admin_signup_user });
+      .send({ user: admin_user });
     user = user_resp.body.user;
     admin = admin_resp.body.user;
   });
@@ -137,6 +133,21 @@ describe('User tests', () => {
       expect(responseBody.user).to.be.undefined;
       expect(responseBody.error).to.exist;
       expect(responseBody.error.message).to.equal('You have to be an admin or a moderator to perform this action');
+    });
+
+    it('fails when no token is provided for protected routes', async () => {
+      const response = await chai
+        .request(app)
+        .post(`/api/users/${user._id}/suspend`)
+        // .set('authorization', `Bearer ${alternate_user.token}`)
+        .send({ user: { _id: user._id } });
+
+      const responseBody = response.body;
+      expect(response.unauthorized).to.be.true;
+      expect(response.status).to.equal(401);
+      expect(responseBody.user).to.be.undefined;
+      expect(responseBody.error).to.exist;
+      expect(responseBody.error.message).to.equal('No authorization token was found');
     });
   });
 });

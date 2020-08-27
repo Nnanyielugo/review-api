@@ -6,9 +6,8 @@
     "start": "node app",
     "dev": "nodemon app",
     "lint": "eslint --fix .",
-    "test": "mocha",
-    "posttest": "nyc report",
-    "generate-fake-data": "node test/mocks/faker-randoms/"
+    "test": "nyc mocha",
+    "generate-fake-data": "node faker-utils/"
   },
   "dependencies": {
     "@babel/core": "^7.9.6",

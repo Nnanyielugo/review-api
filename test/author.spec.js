@@ -155,9 +155,41 @@ describe('Author tests', () => {
       expect(responseAuthor.date_of_death).to.equal(modified_author.date_of_death);
       expect(responseAuthor.created_by._id.toString()).to.equal(user._id.toString());
     });
+
+    it('deletes an existing author', async () => {
+      const author_id = author.body.author._id;
+      const response = await chai
+        .request(app)
+        .delete(`/api/authors/${author_id}`)
+        .set('authorization', `Bearer ${user.token}`);
+
+      expect(response.status).to.equal(204);
+    });
+
+    it('lets superuser delete an author it did not create', async () => {
+      const author_id = author.body.author._id;
+      const response = await chai
+        .request(app)
+        .delete(`/api/authors/${author_id}`)
+        .set('authorization', `Bearer ${superuser.token}`);
+
+      expect(response.status).to.equal(204);
+    });
   });
 
   describe('failing tests', () => {
+    it('fails when no token is provided for protected routes', async () => {
+      const response = await chai
+        .request(app)
+        .post('/api/authors/')
+        .send(valid_author);
+
+      expect(response.status).to.equal(401);
+      expect(response.body.author).to.be.undefined;
+      expect(response.body.error).to.be.an('object');
+      expect(response.body.error.message).to.equal('No authorization token was found');
+    });
+
     it('fails to create for an invalid author object', async () => {
       const response = await chai
         .request(app)
@@ -171,6 +203,19 @@ describe('Author tests', () => {
       expect(response.body.error.message).to.equal('Author validation failed: first_name: can\'t be blank, family_name: can\'t be blank');
     });
 
+    it('fails for invalid author id', async () => {
+      const response = await chai
+        .request(app)
+        .patch('/api/authors/5f48345bdb170e117aa39151')
+        .set('authorization', `Bearer ${user.token}`)
+        .send(modified_author);
+
+      expect(response.status).to.equal(404);
+      expect(response.body.author).to.be.undefined;
+      expect(response.body.error).to.be.an('object');
+      expect(response.body.error.message).to.equal('Author does not exist');
+    });
+
     it('it fails when user isn\'t creator of author, or superuser', async () => {
       const author_id = author.body.author._id;
       const response = await chai
@@ -182,6 +227,29 @@ describe('Author tests', () => {
       expect(response.status).to.equal(401);
       expect(response.body.error).to.be.an('object');
       expect(response.body.error.message).to.equal('You must either be author author or an admin to edit this author');
+    });
+
+    it('fails when user didn\'t create author, or is not a superuser', async () => {
+      const response = await chai
+        .request(app)
+        .delete(`/api/authors/${alternate_author_obj._id}`)
+        .set('authorization', `Bearer ${user.token}`);
+
+      expect(response.status).to.equal(401);
+      expect(response.body.error).to.be.an('object');
+      expect(response.body.error.message).to.equal('You must either be author creator or an admin to delete this author');
+    });
+
+    // TODO: failing test for author books
+    it.skip('fails when author still has books', async () => {
+      const author_id = author.body.author._id;
+      const response = await chai
+        .request(app)
+        .delete(`/api/authors/${author_id}`)
+        .set('authorization', `Bearer ${user.token}`);
+
+      expect(response.status).to.equal(400);
+      expect(response.body.message).to.equal('Author has books. Delete first, then try again');
     });
   });
 });

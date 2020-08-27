@@ -134,5 +134,19 @@ describe('User tests', () => {
       expect(responseBody.error).to.exist;
       expect(responseBody.error.message).to.equal('You have to be an admin or a moderator to perform this action');
     });
+
+    it('fails when no token is provided for protected routes', async () => {
+      const response = await chai
+        .request(app)
+        .post(`/api/users/${user._id}/suspend`)
+        // .set('authorization', `Bearer ${alternate_user.token}`)
+        .send({ user: { _id: user._id } });
+
+      const responseBody = response.body;
+      expect(response.status).to.equal(401);
+      expect(responseBody.user).to.be.undefined;
+      expect(responseBody.error).to.exist;
+      expect(responseBody.error.message).to.equal('No authorization token was found');
+    });
   });
 });

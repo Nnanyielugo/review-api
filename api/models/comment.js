@@ -30,7 +30,7 @@ CommentSchema.methods.updateFavoriteCount = function () {
 
 CommentSchema.methods.toObjectJsonFor = function (user) {
   return {
-    id: this._id,
+    _id: this._id,
     content: this.content,
     createdAt: this.createdAt,
     updatedAt: this.updatedAt,

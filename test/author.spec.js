@@ -3,8 +3,14 @@ const chaiHttp = require('chai-http');
 const mongoose = require('mongoose');
 const { MongoMemoryServer } = require('mongodb-memory-server');
 const app = require('../app');
-const { valid_signup_user } = require('./mocks/user');
-const { valid_author, invalid_author } = require('./mocks/author');
+const {
+  valid_signup_user, alternate_signup_user,
+  admin_user,
+} = require('./mocks/user');
+const {
+  valid_author, invalid_author,
+  modified_author, alternate_author,
+} = require('./mocks/author');
 
 chai.use(chaiHttp);
 const { expect } = chai;
@@ -12,6 +18,10 @@ const { expect } = chai;
 describe.only('Author tests', () => {
   let mongoServer;
   let user;
+  let alternate_user;
+  let author;
+  let superuser;
+  let alternate_author_obj;
   beforeEach(async () => {
     mongoServer = new MongoMemoryServer();
     const mongoUri = await mongoServer.getUri();
@@ -26,6 +36,33 @@ describe.only('Author tests', () => {
       .post('/api/users/')
       .send({ user: valid_signup_user });
     user = user_resp.body.user;
+
+    const alternate_user_resp = await chai
+      .request(app)
+      .post('/api/users/')
+      .send({ user: alternate_signup_user });
+    alternate_user = alternate_user_resp.body.user;
+
+    const superuser_resp = await chai
+      .request(app)
+      .post('/api/users/')
+      .send({ user: admin_user });
+    superuser = superuser_resp.body.user;
+
+    // create author
+    const author_resp = await chai
+      .request(app)
+      .post('/api/authors/')
+      .set('authorization', `Bearer ${user.token}`)
+      .send(valid_author);
+    author = author_resp;
+
+    const alternate_author_resp = await chai
+      .request(app)
+      .post('/api/authors/')
+      .set('authorization', `Bearer ${alternate_user.token}`)
+      .send(alternate_author);
+    alternate_author_obj = alternate_author_resp.body.author;
   });
 
   afterEach(async () => {
@@ -35,15 +72,9 @@ describe.only('Author tests', () => {
 
   describe('passing tests', () => {
     it('creates a valid author', async () => {
-      const response = await chai
-        .request(app)
-        .post('/api/authors/')
-        .set('authorization', `Bearer ${user.token}`)
-        .send(valid_author);
-
-      const responseAuthor = response.body.author;
-      expect(response.status).to.equal(201);
-      expect(response.body.error).to.be.undefined;
+      const responseAuthor = author.body.author;
+      expect(author.status).to.equal(201);
+      expect(author.body.error).to.be.undefined;
       expect(responseAuthor.first_name).to.equal(valid_author.first_name);
       expect(responseAuthor.family_name).to.equal(valid_author.family_name);
       expect(responseAuthor.date_of_birth).to.equal(valid_author.date_of_birth);
@@ -51,10 +82,63 @@ describe.only('Author tests', () => {
       expect(responseAuthor.bio).to.equal(valid_author.bio);
       expect(responseAuthor.created_by).to.equal(user._id);
     });
+
+    it('list authors', async () => {
+      const response = await chai
+        .request(app)
+        .get('/api/authors/');
+
+      console.log('response body', response.body)
+      expect(response.status).to.equal(200)
+    });
+
+    it('it modifies an existing author', async () => {
+      const author_id = author.body.author._id;
+      const response = await chai
+        .request(app)
+        .patch(`/api/authors/${author_id}`)
+        .set('authorization', `Bearer ${user.token}`)
+        .send(modified_author);
+
+      const responseAuthor = response.body.author;
+      expect(response.status).to.equal(201);
+      expect(response.body.error).to.be.undefined;
+      expect(responseAuthor).to.be.an('object');
+      expect(responseAuthor._id).to.equal(author.body.author._id);
+      expect(responseAuthor.books.length).to.equal(author.body.author.books.length);
+      expect(responseAuthor.first_name).to.equal(modified_author.first_name);
+      expect(responseAuthor.last_name).to.equal(modified_author.last_name);
+      expect(responseAuthor.bio).to.equal(modified_author.bio);
+      expect(responseAuthor.date_of_birth).to.equal(modified_author.date_of_birth);
+      expect(responseAuthor.date_of_death).to.equal(modified_author.date_of_death);
+      expect(responseAuthor.created_by._id.toString()).to.equal(user._id.toString());
+    });
+
+    it('it lets a superuser edit an author it did not create', async () => {
+      const author_id = author.body.author._id;
+      const response = await chai
+        .request(app)
+        .patch(`/api/authors/${author_id}`)
+        .set('authorization', `Bearer ${superuser.token}`)
+        .send(modified_author);
+
+      const responseAuthor = response.body.author;
+      expect(response.status).to.equal(201);
+      expect(response.body.error).to.be.undefined;
+      expect(responseAuthor).to.be.an('object');
+      expect(responseAuthor._id).to.equal(author.body.author._id);
+      expect(responseAuthor.books.length).to.equal(author.body.author.books.length);
+      expect(responseAuthor.first_name).to.equal(modified_author.first_name);
+      expect(responseAuthor.last_name).to.equal(modified_author.last_name);
+      expect(responseAuthor.bio).to.equal(modified_author.bio);
+      expect(responseAuthor.date_of_birth).to.equal(modified_author.date_of_birth);
+      expect(responseAuthor.date_of_death).to.equal(modified_author.date_of_death);
+      expect(responseAuthor.created_by._id.toString()).to.equal(user._id.toString());
+    });
   });
 
   describe('failing tests', () => {
-    it('fails for an invalid author', async () => {
+    it('fails to create for an invalid author object', async () => {
       const response = await chai
         .request(app)
         .post('/api/authors/')
@@ -65,6 +149,19 @@ describe.only('Author tests', () => {
       expect(response.body.author).to.be.undefined;
       expect(response.body.error).to.be.an('object');
       expect(response.body.error.message).to.equal('Author validation failed: first_name: can\'t be blank, family_name: can\'t be blank');
+    });
+
+    it('it fails when user isn\'t creator of author, or superuser', async () => {
+      const author_id = author.body.author._id;
+      const response = await chai
+        .request(app)
+        .patch(`/api/authors/${author_id}`)
+        .set('authorization', `Bearer ${alternate_user.token}`)
+        .send(modified_author);
+
+      expect(response.status).to.equal(401);
+      expect(response.body.error).to.be.an('object');
+      expect(response.body.error.message).to.equal('You must either be author author or an admin to edit this author');
     });
   });
 });

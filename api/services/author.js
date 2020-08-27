@@ -24,24 +24,25 @@ exports.preloadAuthor = function (req, res, next, id) {
     .catch(next);
 };
 
-exports.list = function (req, res, next) {
-  return Author.find()
-    .sort({ family_name: 'ascending' })
-    .then((list) => {
-      const getAuthor_books = (author) => Book
-        .find({ author: author._id })
-        .then((books) => ({
-          ...author.toObject(),
-          books_available: books.length,
-        }))
-        .catch(next);
+exports.list = async function (req, res, next) {
+  try {
+    const author_list = await Author
+      .find()
+      .sort({ family_name: 'ascending' });
+    const get_author_books = async (author) => {
+      const author_books = await Book
+        .find({ author: author._id });
+      return {
+        ...author.toObject(),
+        book_count: author_books.length,
+      };
+    };
 
-      Promise
-        .all(list.map(getAuthor_books))
-        .then((results) => res.json(results))
-        .catch(next);
-    })
-    .catch(next);
+    const list_results = await Promise.all(author_list.map(get_author_books));
+    return res.json(list_results);
+  } catch (err) {
+    next(err);
+  }
 };
 
 exports.detail = function (req, res, next) {

@@ -95,6 +95,26 @@ describe.only('Author tests', () => {
       expect(response.body[1].first_name).to.equal(author.body.author.first_name);
     });
 
+    it('gets a single author', async () => {
+      const author_id = author.body.author._id;
+      const response = await chai
+        .request(app)
+        .get(`/api/authors/${author_id}`);
+
+      const responseAuthor = response.body.author;
+      expect(response.status).to.equal(200);
+      expect(response.body.error).to.be.undefined;
+      expect(responseAuthor).to.be.an('object');
+      expect(responseAuthor._id).to.equal(author_id);
+      expect(responseAuthor.books.length).to.equal(0);
+      expect(responseAuthor.first_name).to.equal(author.body.author.first_name);
+      expect(responseAuthor.last_name).to.equal(author.body.author.last_name);
+      expect(responseAuthor.bio).to.equal(author.body.author.bio);
+      expect(responseAuthor.date_of_birth).to.equal(author.body.author.date_of_birth);
+      expect(responseAuthor.date_of_death).to.equal(author.body.author.date_of_death);
+      expect(responseAuthor.created_by._id.toString()).to.equal(user._id.toString());
+    });
+
     it('it modifies an existing author', async () => {
       const author_id = author.body.author._id;
       const response = await chai

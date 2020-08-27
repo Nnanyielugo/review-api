@@ -83,13 +83,16 @@ describe.only('Author tests', () => {
       expect(responseAuthor.created_by).to.equal(user._id);
     });
 
-    it('list authors', async () => {
+    it('list authors and sorts by family name', async () => {
       const response = await chai
         .request(app)
         .get('/api/authors/');
 
-      console.log('response body', response.body)
-      expect(response.status).to.equal(200)
+      expect(response.status).to.equal(200);
+      expect(response.body.length).to.equal(2);
+      // sorts by family name, so Ernser would come before Stehr
+      expect(response.body[0].first_name).to.equal(alternate_author_obj.first_name);
+      expect(response.body[1].first_name).to.equal(author.body.author.first_name);
     });
 
     it('it modifies an existing author', async () => {

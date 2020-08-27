@@ -7,9 +7,9 @@ const User = model('User');
 exports.preloadAuthor = function (req, res, next, id) {
   Author
     .findById(id)
-    .populate('created_by')
-    .populate('edited_by')
-    .populate('books')
+    .populate('created_by', 'username user_type')
+    .populate('edited_by', 'username user_type')
+    .populate('books', 'title summary')
     .then((author) => {
       if (!author) {
         return res.status(404).json({
@@ -24,44 +24,26 @@ exports.preloadAuthor = function (req, res, next, id) {
     .catch(next);
 };
 
-exports.list = async function (req, res, next) {
+exports.list = async function (_req, res, next) {
   try {
     const author_list = await Author
       .find()
+      .populate('books', 'title summary')
       .sort({ family_name: 'ascending' });
-    const get_author_books = async (author) => {
-      const author_books = await Book
-        .find({ author: author._id });
-      return {
-        ...author.toObject(),
-        book_count: author_books.length,
-      };
-    };
 
-    const list_results = await Promise.all(author_list.map(get_author_books));
-    return res.json(list_results);
+    return res.json(author_list);
   } catch (err) {
     next(err);
   }
 };
 
-exports.detail = function (req, res, next) {
-  const author = Author
-    .findById(req.params.id)
-    .select('-books')
-    .exec();
-
-  const author_books = Book
-    .find({ author: req.params.id })
-    .select('title summary')
-    .exec();
-
-  return Promise
-    .all([author, author_books])
-    .then(([found_author, found_author_books]) => res.status(200).json({
-      author: found_author.toObjectJsonFor(found_author_books),
-    }))
-    .catch(next);
+exports.detail = async function (req, res, next) {
+  try {
+    const { author } = req;
+    return res.status(200).json({ author: author.toObjectJsonFor(author) });
+  } catch (err) {
+    next(err);
+  }
 };
 
 exports.create = async function (req, res, next) {

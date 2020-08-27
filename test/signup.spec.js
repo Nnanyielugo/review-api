@@ -2,6 +2,8 @@ const chai = require('chai');
 const chaiHttp = require('chai-http');
 const mongoose = require('mongoose');
 const { MongoMemoryServer } = require('mongodb-memory-server');
+const connect_mongoose = require('../api/utils/mongoose_utils');
+
 const app = require('../app');
 const {
   valid_signup_user, invalid_signup_no_email,
@@ -15,12 +17,8 @@ describe('Signup tests', () => {
   let mongoServer;
   beforeEach(async () => {
     mongoServer = new MongoMemoryServer();
-    const mongoUri = await mongoServer.getUri();
-    const options = {
-      useFindAndModify: false,
-      useNewUrlParser: true,
-    };
-    await mongoose.connect(mongoUri, options);
+    const mongo_uri = await mongoServer.getUri();
+    await connect_mongoose(mongo_uri);
   });
 
   afterEach(async () => {

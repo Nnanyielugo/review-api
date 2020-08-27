@@ -184,6 +184,7 @@ describe('Author tests', () => {
         .post('/api/authors/')
         .send(valid_author);
 
+      expect(response.unauthorized).to.be.true;
       expect(response.status).to.equal(401);
       expect(response.body.author).to.be.undefined;
       expect(response.body.error).to.be.an('object');

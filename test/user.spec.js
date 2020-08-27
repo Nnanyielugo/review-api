@@ -143,6 +143,7 @@ describe('User tests', () => {
         .send({ user: { _id: user._id } });
 
       const responseBody = response.body;
+      expect(response.unauthorized).to.be.true;
       expect(response.status).to.equal(401);
       expect(responseBody.user).to.be.undefined;
       expect(responseBody.error).to.exist;

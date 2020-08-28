@@ -1,6 +1,7 @@
 const { model } = require('mongoose');
 
 const Book = model('Book');
+const User = model('User');
 
 exports.preloadBook = async function (req, res, next, id) {
   try {
@@ -77,16 +78,48 @@ exports.create = async function (req, res, next) {
 };
 
 exports.update = async function (req, res, next) {
-  const request_book = req.book;
-  const book = new Book({
-    ...req.body.book,
-    genre: (typeof req.body.genre === 'undefined') ? [] : req.body.genre.split(','),
-  });
+  try {
+    const user_id = req.payload.id;
+    const user_obj = await User.findById(user_id);
+    if (!user_id) {
+      return res.sendStatus(401);
+    }
 
-  return book
-    .update()
-    .then((doc) => res.status(201).json({ book: doc }))
-    .catch(next);
+    if ((req.book.created_by._id.toString() !== user_id.toString())
+      && user_obj.user_type !== 'admin') {
+      return res.status(401).json({
+        error: {
+          message: 'You must either be book creator or an admin to edit this book',
+        },
+      });
+    }
+
+    if (typeof req.body.book.title !== 'undefined') {
+      req.book.title = req.body.book.title;
+    }
+
+    if (typeof req.body.book.summary !== 'undefined') {
+      req.book.summary = req.body.book.summary;
+    }
+
+    if (typeof req.body.book.isbn !== 'undefined') {
+      req.book.isbn = req.body.book.isbn;
+    }
+
+    if (typeof req.body.book.genre !== 'undefined') {
+      req.book.genre = req.body.book.genre;
+    }
+
+    if (req.book.created_by._id.toString() !== user_id.toString()) {
+      req.book.edited_by = user_id;
+    }
+
+    await req.book.updateOne();
+    const doc = req.book.toObjectJsonFor();
+    return res.status(200).json({ book: doc });
+  } catch (err) {
+    next(err);
+  }
 };
 
 exports.delete = function (req, res, next) {

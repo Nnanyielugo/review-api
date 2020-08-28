@@ -65,8 +65,10 @@ describe.only('Book tests', () => {
       .post('/api/books/')
       .set('authorization', `Bearer ${user.token}`)
       .send({
-        ...valid_book,
-        author_id: author._id,
+        book: {
+          ...valid_book,
+          author_id: author._id,
+        },
       });
     book = valid_book_resp;
   });
@@ -97,8 +99,10 @@ describe.only('Book tests', () => {
         .post('/api/books/')
         .set('authorization', `Bearer ${user.token}`)
         .send({
-          ...alternate_book,
-          author_id: author._id,
+          book: {
+            ...alternate_book,
+            author_id: author._id,
+          },
         });
 
       const responseBook = response.body.book;
@@ -121,6 +125,28 @@ describe.only('Book tests', () => {
       expect(responseBook.isbn).to.equal(book.body.book.isbn);
       expect(responseBook.author._id).to.equal(author._id);
     });
+
+    it.skip('updates single book', async () => {
+      const response = await chai
+        .request(app)
+        .post('/api/books/')
+        .set('authorization', `Bearer ${user.token}`)
+        .send({
+          book: {
+            ...alternate_book,
+            author_id: author._id,
+          },
+        });
+
+      const responseBook = response.body.book;
+      expect(response.status).to.equal(201);
+      expect(responseBook.title).to.equal(alternate_book.title);
+      expect(responseBook.summary).to.equal(alternate_book.summary);
+      expect(responseBook.isbn).to.equal(alternate_book.isbn);
+      expect(responseBook.author).to.equal(author._id);
+    });
+
+    it.skip('deletes book', async () => {});
   });
   describe('failing tests', () => {
     it('fails when no token is provided for protected routes', async () => {
@@ -128,8 +154,10 @@ describe.only('Book tests', () => {
         .request(app)
         .post('/api/books/')
         .send({
-          ...valid_book,
-          author_id: author._id,
+          book: {
+            ...valid_book,
+            author_id: author._id,
+          },
         });
 
       const responseBody = response.body;
@@ -146,8 +174,10 @@ describe.only('Book tests', () => {
         .post('/api/books/')
         .set('authorization', `Bearer ${user.token}`)
         .send({
-          ...invalid_book,
-          author_id: author._id,
+          book: {
+            ...invalid_book,
+            author_id: author._id,
+          },
         });
 
       expect(response.status).to.equal(500);
@@ -166,6 +196,7 @@ describe.only('Book tests', () => {
       expect(response.body.error).to.be.an('object');
       expect(response.body.error.message).to.equal('Book does not exist');
     });
-    it.skip('', () => {});
+    it.skip('fails to update with invalid id', () => {});
+    it.skip('fails to delete with invalid id', () => {});
   });
 });

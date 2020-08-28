@@ -62,12 +62,12 @@ exports.create = async function (req, res, next) {
   try {
     const user_id = req.payload.id;
     const book = new Book({
-      title: req.body.title,
-      author: req.body.author_id,
-      summary: req.body.summary,
+      title: req.body.book.title,
+      author: req.body.book.author_id,
+      summary: req.body.book.summary,
       created_by: user_id,
-      isbn: req.body.isbn,
-      genre: (typeof req.body.genre === 'undefined') ? [] : req.body.genre.split(','),
+      isbn: req.body.book.isbn,
+      genre: (typeof req.body.book.genre === 'undefined') ? [] : req.body.book.genre.split(','),
     });
     await book.save();
     return res.status(201).json({ book: book.toObjectJsonFor() });
@@ -76,9 +76,10 @@ exports.create = async function (req, res, next) {
   }
 };
 
-exports.update = function (req, res, next) {
+exports.update = async function (req, res, next) {
+  const request_book = req.book;
   const book = new Book({
-    ...req.body,
+    ...req.body.book,
     genre: (typeof req.body.genre === 'undefined') ? [] : req.body.genre.split(','),
   });
 

@@ -36,10 +36,12 @@ exports.detail = async function (req, res, next) {
 exports.create = async function (req, res, next) {
   // TODO: sanitize and trim form values
   try {
+    const user_id = req.payload.id;
     const book = new Book({
       title: req.body.title,
       author: req.body.author_id,
       summary: req.body.summary,
+      created_by: user_id,
       isbn: req.body.isbn,
       genre: (typeof req.body.genre === 'undefined') ? [] : req.body.genre.split(','),
     });

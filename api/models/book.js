@@ -12,6 +12,15 @@ const BookSchema = Schema({
   summary: { type: String, required: true },
   isbn: { type: String, required: true },
   genre: [{ type: Schema.Types.ObjectId, ref: 'Genre' }],
+  created_by: {
+    type: Schema.Types.ObjectId,
+    ref: 'User',
+    required: true,
+  },
+  edited_by: {
+    type: Schema.Types.ObjectId,
+    ref: 'User',
+  },
   reviews: [{
     type: Schema.Types.ObjectId,
     ref: 'Review',

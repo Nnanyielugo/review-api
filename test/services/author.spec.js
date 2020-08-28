@@ -2,16 +2,16 @@ const chai = require('chai');
 const chaiHttp = require('chai-http');
 const { MongoMemoryServer } = require('mongodb-memory-server');
 const mongoose = require('mongoose');
-const connect_mongoose = require('../api/utils/mongoose_utils');
-const app = require('../app');
+const connect_mongoose = require('../../api/utils/mongoose_utils');
+const app = require('../../app');
 const {
   valid_signup_user, alternate_signup_user,
   admin_user,
-} = require('./mocks/user');
+} = require('../mocks/user');
 const {
   valid_author, invalid_author,
   modified_author, alternate_author,
-} = require('./mocks/author');
+} = require('../mocks/author');
 
 chai.use(chaiHttp);
 const { expect } = chai;
@@ -51,14 +51,14 @@ describe('Author tests', () => {
       .request(app)
       .post('/api/authors/')
       .set('authorization', `Bearer ${user.token}`)
-      .send(valid_author);
+      .send({ author: valid_author });
     author = author_resp;
 
     const alternate_author_resp = await chai
       .request(app)
       .post('/api/authors/')
       .set('authorization', `Bearer ${alternate_user.token}`)
-      .send(alternate_author);
+      .send({ author: alternate_author });
     alternate_author_obj = alternate_author_resp.body.author;
   });
 
@@ -112,13 +112,13 @@ describe('Author tests', () => {
       expect(responseAuthor.created_by._id.toString()).to.equal(user._id.toString());
     });
 
-    it('it modifies an existing author', async () => {
+    it('modifies an existing author', async () => {
       const author_id = author.body.author._id;
       const response = await chai
         .request(app)
         .patch(`/api/authors/${author_id}`)
         .set('authorization', `Bearer ${user.token}`)
-        .send(modified_author);
+        .send({ author: modified_author });
 
       const responseAuthor = response.body.author;
       expect(response.status).to.equal(201);
@@ -134,13 +134,13 @@ describe('Author tests', () => {
       expect(responseAuthor.created_by._id.toString()).to.equal(user._id.toString());
     });
 
-    it('it lets a superuser edit an author it did not create', async () => {
+    it('lets a superuser edit an author it did not create', async () => {
       const author_id = author.body.author._id;
       const response = await chai
         .request(app)
         .patch(`/api/authors/${author_id}`)
         .set('authorization', `Bearer ${superuser.token}`)
-        .send(modified_author);
+        .send({ author: modified_author });
 
       const responseAuthor = response.body.author;
       expect(response.status).to.equal(201);
@@ -182,7 +182,7 @@ describe('Author tests', () => {
       const response = await chai
         .request(app)
         .post('/api/authors/')
-        .send(valid_author);
+        .send({ author: valid_author });
 
       expect(response.unauthorized).to.be.true;
       expect(response.status).to.equal(401);
@@ -196,7 +196,7 @@ describe('Author tests', () => {
         .request(app)
         .post('/api/authors/')
         .set('authorization', `Bearer ${user.token}`)
-        .send(invalid_author);
+        .send({ author: invalid_author });
 
       expect(response.status).to.equal(500);
       expect(response.body.author).to.be.undefined;
@@ -209,7 +209,7 @@ describe('Author tests', () => {
         .request(app)
         .patch('/api/authors/5f48345bdb170e117aa39151')
         .set('authorization', `Bearer ${user.token}`)
-        .send(modified_author);
+        .send({ author: modified_author });
 
       expect(response.status).to.equal(404);
       expect(response.body.author).to.be.undefined;
@@ -217,17 +217,42 @@ describe('Author tests', () => {
       expect(response.body.error.message).to.equal('Author does not exist');
     });
 
-    it('it fails when user isn\'t creator of author, or superuser', async () => {
+    it('fails when user isn\'t creator of author, or superuser', async () => {
       const author_id = author.body.author._id;
       const response = await chai
         .request(app)
         .patch(`/api/authors/${author_id}`)
         .set('authorization', `Bearer ${alternate_user.token}`)
-        .send(modified_author);
+        .send({ author: modified_author });
 
       expect(response.status).to.equal(401);
       expect(response.body.error).to.be.an('object');
       expect(response.body.error.message).to.equal('You must either be author author or an admin to edit this author');
+    });
+
+    it('fails when author object isn\'t provided for update', async () => {
+      const author_id = author.body.author._id;
+      const response = await chai
+        .request(app)
+        .patch(`/api/authors/${author_id}`)
+        .set('authorization', `Bearer ${user.token}`)
+        .send(modified_author);
+
+      expect(response.status).to.equal(400);
+      expect(response.body.error).to.be.an('object');
+      expect(response.body.error.message).to.equal('You need to supply the author object with this request');
+    });
+
+    it('fails when author object isn\'t provided for create', async () => {
+      const response = await chai
+        .request(app)
+        .post('/api/authors/')
+        .set('authorization', `Bearer ${user.token}`)
+        .send(modified_author);
+
+      expect(response.status).to.equal(400);
+      expect(response.body.error).to.be.an('object');
+      expect(response.body.error.message).to.equal('You need to supply the author object with this request');
     });
 
     it('fails when user didn\'t create author, or is not a superuser', async () => {

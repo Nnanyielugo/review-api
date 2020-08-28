@@ -2,9 +2,9 @@ const chai = require('chai');
 const chaiHttp = require('chai-http');
 const mongoose = require('mongoose');
 const { MongoMemoryServer } = require('mongodb-memory-server');
-const connect_mongoose = require('../api/utils/mongoose_utils');
-const app = require('../app');
-const { valid_signup_user, valid_login, invalid_login } = require('./mocks/user');
+const connect_mongoose = require('../../api/utils/mongoose_utils');
+const app = require('../../app');
+const { valid_signup_user, valid_login, invalid_login } = require('../mocks/user');
 
 chai.use(chaiHttp);
 const { expect } = chai;
@@ -54,6 +54,18 @@ describe('Login tests', () => {
       expect(response.body.user).to.be.undefined;
       expect(response.body.error).to.be.an('object');
       expect(response.body.error.message).to.equal('Email or password is invalid');
+    });
+
+    it('returns an error when user object isn\'t provided', async () => {
+      const response = await chai
+        .request(app)
+        .post('/api/users/login')
+        .send(valid_login);
+
+      const responseBody = response.body;
+      expect(response.status).to.equal(400);
+      expect(responseBody.error).to.exist;
+      expect(responseBody.error.message).to.equal('You need to supply the user object with this request');
     });
   });
 });

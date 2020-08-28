@@ -4,24 +4,26 @@ const Author = model('Author');
 const Book = model('Book');
 const User = model('User');
 
-exports.preloadAuthor = function (req, res, next, id) {
-  Author
-    .findById(id)
-    .populate('created_by', 'username user_type')
-    .populate('edited_by', 'username user_type')
-    .populate('books', 'title summary')
-    .then((author) => {
-      if (!author) {
-        return res.status(404).json({
-          error: {
-            message: 'Author does not exist',
-          },
-        });
-      }
-      req.author = author;
-      return next();
-    })
-    .catch(next);
+exports.preloadAuthor = async function (req, res, next, id) {
+  try {
+    const author = await Author
+      .findById(id)
+      .populate('created_by', 'username user_type')
+      .populate('edited_by', 'username user_type')
+      .populate('books', 'title summary');
+
+    if (!author) {
+      return res.status(404).json({
+        error: {
+          message: 'Author does not exist',
+        },
+      });
+    }
+    req.author = author;
+    return next();
+  } catch (err) {
+    next(err);
+  }
 };
 
 exports.list = async function (_req, res, next) {
@@ -49,13 +51,21 @@ exports.detail = async function (req, res, next) {
 exports.create = async function (req, res, next) {
   try {
     // TODO: backend form validation
+    if (!req.body.author) {
+      return res.status(400).json({
+        error: {
+          message: 'You need to supply the author object with this request',
+        },
+      });
+    }
+
     const author = new Author({
-      first_name: req.body.first_name,
-      family_name: req.body.family_name,
-      date_of_birth: req.body.date_of_birth,
-      date_of_death: req.body.date_of_death,
+      first_name: req.body.author.first_name,
+      family_name: req.body.author.family_name,
+      date_of_birth: req.body.author.date_of_birth,
+      date_of_death: req.body.author.date_of_death,
       created_by: req.payload.id,
-      bio: req.body.bio,
+      bio: req.body.author.bio,
     });
 
     const doc = await author.save();
@@ -68,6 +78,14 @@ exports.create = async function (req, res, next) {
 exports.update = async function (req, res, next) {
   // TODO:, sanitize and check data and id passed in.
   try {
+    if (!req.body.author) {
+      return res.status(400).json({
+        error: {
+          message: 'You need to supply the author object with this request',
+        },
+      });
+    }
+
     const user_id = req.payload.id;
     const author = await Author.findById(req.params.author);
     const user_obj = await User.findById(req.payload.id);
@@ -86,24 +104,24 @@ exports.update = async function (req, res, next) {
       });
     }
 
-    if (typeof req.body.first_name !== 'undefined') {
-      req.author.first_name = req.body.first_name;
+    if (typeof req.body.author.first_name !== 'undefined') {
+      req.author.first_name = req.body.author.first_name;
     }
 
-    if (typeof req.body.family_name !== 'undefined') {
-      req.author.family_name = req.body.family_name;
+    if (typeof req.body.author.family_name !== 'undefined') {
+      req.author.family_name = req.body.author.family_name;
     }
 
-    if (typeof req.body.date_of_birth !== 'undefined') {
-      req.author.date_of_birth = req.body.date_of_birth;
+    if (typeof req.body.author.date_of_birth !== 'undefined') {
+      req.author.date_of_birth = req.body.author.date_of_birth;
     }
 
-    if (typeof req.body.date_of_death !== 'undefined') {
-      req.author.date_of_death = req.body.date_of_death;
+    if (typeof req.body.author.date_of_death !== 'undefined') {
+      req.author.date_of_death = req.body.author.date_of_death;
     }
 
-    if (typeof req.body.bio !== 'undefined') {
-      req.author.bio = req.body.bio;
+    if (typeof req.body.author.bio !== 'undefined') {
+      req.author.bio = req.body.author.bio;
     }
 
     if (req.author.created_by._id.toString() !== user_id.toString()) {

@@ -37,13 +37,6 @@ const AuthorSchema = Schema({
 }, { timestamps: true });
 
 AuthorSchema
-  .virtual('name')
-  .get(function () {
-    return `${this.family_name}, ${this.first_name}`;
-  });
-
-
-AuthorSchema
   .virtual('lifespan')
   .get(function () {
     let lifetime_string = '';

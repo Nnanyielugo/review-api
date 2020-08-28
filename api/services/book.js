@@ -1,70 +1,161 @@
 const { model } = require('mongoose');
 
 const Book = model('Book');
+const User = model('User');
 
-exports.list = function (_, res, next) {
-  return Book
-    .find({})
-    .select('title author')
-    .populate('author')
-    .then((books) => {
-      res.status(200).json({
-        books,
-      });
-    })
-    .catch(next);
-};
+exports.preloadBook = async function (req, res, next, id) {
+  try {
+    const book = await Book
+      .findById(id)
+      .populate('created_by', 'username user_type')
+      .populate('edited_by', 'username user_type')
+      .populate('reviews', 'slug content');
 
-exports.detail = function (req, res, next) {
-  return Book
-    .findById(req.params.id)
-    .populate('auhor')
-    .populate('genre')
-    .then((book) => {
-      if (!book) {
-        return res.status(400).json({
+    if (!book) {
+      return res.status(400).json({
+        error: {
           message: 'Book does not exist',
-        });
-      }
-      return res.send(200).json({
-        book,
+        },
       });
-    })
-    .catch(next);
+    }
+    req.book = book;
+    return next();
+  } catch (err) {
+    next(err);
+  }
 };
 
-exports.create = function (req, res, next) {
+exports.list = async function (_, res, next) {
+  try {
+    const books = await Book
+      .find()
+      .populate('author', 'first_name family_name bio');
+    return res.status(200).json({ books });
+  } catch (err) {
+    next(err);
+  }
+};
+
+exports.detail = async function (req, res, next) {
+  try {
+    const book = await Book
+      .findById(req.params.book)
+      .populate('author', 'first_name family_name bio')
+      .populate('genre');
+    if (!book) {
+      return res.status(400).json({
+        error: {
+          message: 'Book does not exist',
+        },
+      });
+    }
+
+    return res.status(200).json({
+      book,
+    });
+  } catch (err) {
+    next(err);
+  }
+};
+
+exports.create = async function (req, res, next) {
   // TODO: sanitize and trim form values
+  try {
+    if (!req.body.book) {
+      return res.status(400).json({
+        error: {
+          message: 'You need to supply the book object with this request',
+        },
+      });
+    }
 
-  const book = new Book({
-    title: req.body.title,
-    author: req.body.author,
-    summary: req.body.summary,
-    isbn: req.body.isbn,
-    genre: (typeof req.body.genre === 'undefined') ? [] : req.body.genre.split(','),
-  });
-
-  return book
-    .save()
-    .then((doc) => res.send(201).json({ book: doc }))
-    .catch(next);
+    const user_id = req.payload.id;
+    const book = new Book({
+      title: req.body.book.title,
+      author: req.body.book.author_id,
+      summary: req.body.book.summary,
+      created_by: user_id,
+      isbn: req.body.book.isbn,
+      genre: (typeof req.body.book.genre === 'undefined') ? [] : req.body.book.genre.split(','),
+    });
+    await book.save();
+    return res.status(201).json({ book: book.toObjectJsonFor() });
+  } catch (err) {
+    next(err);
+  }
 };
 
-exports.update = function (req, res, next) {
-  const book = new Book({
-    ...req.body,
-    genre: (typeof req.body.genre === 'undefined') ? [] : req.body.genre.split(','),
-  });
+exports.update = async function (req, res, next) {
+  try {
+    const user_id = req.payload.id;
+    const user_obj = await User.findById(user_id);
 
-  return book
-    .update()
-    .then((doc) => res.status(201).json({ book: doc }))
-    .catch(next);
+    if (!req.body.book) {
+      return res.status(400).json({
+        error: {
+          message: 'You need to supply the book object with this request',
+        },
+      });
+    }
+
+    if (!user_id) {
+      return res.sendStatus(401);
+    }
+
+    if ((req.book.created_by._id.toString() !== user_id.toString())
+      && user_obj.user_type !== 'admin') {
+      return res.status(401).json({
+        error: {
+          message: 'You must either be book creator or an admin to edit this book',
+        },
+      });
+    }
+
+    if (typeof req.body.book.title !== 'undefined') {
+      req.book.title = req.body.book.title;
+    }
+
+    if (typeof req.body.book.summary !== 'undefined') {
+      req.book.summary = req.body.book.summary;
+    }
+
+    if (typeof req.body.book.isbn !== 'undefined') {
+      req.book.isbn = req.body.book.isbn;
+    }
+
+    if (typeof req.body.book.genre !== 'undefined') {
+      req.book.genre = req.body.book.genre;
+    }
+
+    if (req.book.created_by._id.toString() !== user_id.toString()) {
+      req.book.edited_by = user_id;
+    }
+
+    await req.book.updateOne();
+    const doc = req.book.toObjectJsonFor();
+    return res.status(200).json({ book: doc });
+  } catch (err) {
+    next(err);
+  }
 };
 
-exports.delete = function (req, res, next) {
-  return Book
-    .findByIdAndDelete(req.payload.id)
-    .then(() => res.send(204))
-    .catch(next);
+exports.delete = async function (req, res, next) {
+  try {
+    const user_id = req.payload.id;
+    const user_obj = await User.findById(user_id);
+
+    if ((req.book.created_by._id.toString() !== user_id.toString())
+      && user_obj.user_type !== 'admin') {
+      return res.status(401).json({
+        error: {
+          message: 'You must either be book creator or an admin to edit this book',
+        },
+      });
+    }
+
+    await Book.findByIdAndDelete(req.params.book);
+    return res.sendStatus(204);
+  } catch (err) {
+    next(err);
+  }
 };

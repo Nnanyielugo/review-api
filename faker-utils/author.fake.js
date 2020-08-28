@@ -27,5 +27,3 @@ const alternate_author = {
 module.exports.modified_author = modified_author;
 module.exports.valid_author = valid_author;
 module.exports.alternate_author = alternate_author;
-
-console.log('alternate author', alternate_author);

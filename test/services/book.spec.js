@@ -122,4 +122,50 @@ describe.only('Book tests', () => {
       expect(responseBook.author._id).to.equal(author._id);
     });
   });
+  describe('failing tests', () => {
+    it('fails when no token is provided for protected routes', async () => {
+      const response = await chai
+        .request(app)
+        .post('/api/books/')
+        .send({
+          ...valid_book,
+          author_id: author._id,
+        });
+
+      const responseBody = response.body;
+      expect(response.unauthorized).to.be.true;
+      expect(response.status).to.equal(401);
+      expect(responseBody.user).to.be.undefined;
+      expect(responseBody.error).to.exist;
+      expect(responseBody.error.message).to.equal('No authorization token was found');
+    });
+
+    it('fails to create invalid book object', async () => {
+      const response = await chai
+        .request(app)
+        .post('/api/books/')
+        .set('authorization', `Bearer ${user.token}`)
+        .send({
+          ...invalid_book,
+          author_id: author._id,
+        });
+
+      expect(response.status).to.equal(500);
+      expect(response.body.author).to.be.undefined;
+      expect(response.body.error).to.be.an('object');
+      expect(response.body.error.message).to.equal('Book validation failed: summary: Path `summary` is required., isbn: Path `isbn` is required.');
+    });
+
+    it('to get detail for invalid book ', async () => {
+      const response = await chai
+        .request(app)
+        .get('/api/books/5f49249841523c293c3e387c');
+
+      expect(response.status).to.equal(400);
+      expect(response.body.book).to.be.undefined;
+      expect(response.body.error).to.be.an('object');
+      expect(response.body.error.message).to.equal('Book does not exist');
+    });
+    it.skip('', () => {});
+  });
 });

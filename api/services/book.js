@@ -2,6 +2,28 @@ const { model } = require('mongoose');
 
 const Book = model('Book');
 
+exports.preloadBook = async function (req, res, next, id) {
+  try {
+    const book = await Book
+      .findById(id)
+      .populate('created_by', 'username user_type')
+      .populate('edited_by', 'username user_type')
+      .populate('reviews', 'slug content');
+
+    if (!book) {
+      return res.status(400).json({
+        error: {
+          message: 'Book does not exist',
+        },
+      });
+    }
+    req.book = book;
+    return next();
+  } catch (err) {
+    next(err);
+  }
+};
+
 exports.list = async function (_, res, next) {
   try {
     const books = await Book

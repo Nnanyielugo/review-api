@@ -2,6 +2,7 @@ const router = require('express').Router();
 const book = require('../services/book');
 const auth = require('../middleware/auth');
 
+router.param('book', book.preloadBook);
 router.get('/', auth.optional, book.list);
 router.post('/', auth.required, book.create);
 router.get('/:book', auth.optional, book.detail);

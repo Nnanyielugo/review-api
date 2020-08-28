@@ -171,8 +171,25 @@ describe('Book tests', () => {
       expect(responseBook.edited_by).to.equal(superuser._id);
     });
 
-    it.skip('deletes book', async () => {});
+    it('deletes book', async () => {
+      const response = await chai
+        .request(app)
+        .delete(`/api/books/${book.body.book._id}`)
+        .set('authorization', `Bearer ${user.token}`);
+
+      expect(response.status).to.equal(204);
+    });
+
+    it('lets admin delete a book it did not create', async () => {
+      const response = await chai
+        .request(app)
+        .delete(`/api/books/${book.body.book._id}`)
+        .set('authorization', `Bearer ${superuser.token}`);
+
+      expect(response.status).to.equal(204);
+    });
   });
+
   describe('failing tests', () => {
     it('fails when no token is provided for protected routes', async () => {
       const response = await chai
@@ -211,7 +228,7 @@ describe('Book tests', () => {
       expect(response.body.error.message).to.equal('Book validation failed: summary: Path `summary` is required., isbn: Path `isbn` is required.');
     });
 
-    it('to get detail for invalid book ', async () => {
+    it('fails to get detail for invalid book ', async () => {
       const response = await chai
         .request(app)
         .get('/api/books/5f49249841523c293c3e387c');
@@ -280,6 +297,26 @@ describe('Book tests', () => {
       expect(response.body.error.message).to.equal('You need to supply the book object with this request');
     });
 
-    it.skip('fails to delete with invalid id', () => {});
+    it('fails to delete with invalid id', async () => {
+      const response = await chai
+        .request(app)
+        .delete('/api/books/5f49249841523c293c3e387c')
+        .set('authorization', `Bearer ${user.token}`);
+
+      expect(response.status).to.equal(400);
+      expect(response.body.error).to.be.an('object');
+      expect(response.body.error.message).to.equal('Book does not exist');
+    });
+
+    it('refuses to let non-superuser delete a book it did not create', async () => {
+      const response = await chai
+        .request(app)
+        .delete(`/api/books/${book.body.book._id}`)
+        .set('authorization', `Bearer ${alternate_user.token}`);
+
+      expect(response.status).to.equal(401);
+      expect(response.body.error).to.be.an('object');
+      expect(response.body.error.message).to.equal('You must either be book creator or an admin to edit this book');
+    });
   });
 });

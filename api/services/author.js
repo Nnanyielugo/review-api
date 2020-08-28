@@ -52,12 +52,12 @@ exports.create = async function (req, res, next) {
   try {
     // TODO: backend form validation
     const author = new Author({
-      first_name: req.body.first_name,
-      family_name: req.body.family_name,
-      date_of_birth: req.body.date_of_birth,
-      date_of_death: req.body.date_of_death,
+      first_name: req.body.author.first_name,
+      family_name: req.body.author.family_name,
+      date_of_birth: req.body.author.date_of_birth,
+      date_of_death: req.body.author.date_of_death,
       created_by: req.payload.id,
-      bio: req.body.bio,
+      bio: req.body.author.bio,
     });
 
     const doc = await author.save();
@@ -88,24 +88,24 @@ exports.update = async function (req, res, next) {
       });
     }
 
-    if (typeof req.body.first_name !== 'undefined') {
-      req.author.first_name = req.body.first_name;
+    if (typeof req.body.author.first_name !== 'undefined') {
+      req.author.first_name = req.body.author.first_name;
     }
 
-    if (typeof req.body.family_name !== 'undefined') {
-      req.author.family_name = req.body.family_name;
+    if (typeof req.body.author.family_name !== 'undefined') {
+      req.author.family_name = req.body.author.family_name;
     }
 
-    if (typeof req.body.date_of_birth !== 'undefined') {
-      req.author.date_of_birth = req.body.date_of_birth;
+    if (typeof req.body.author.date_of_birth !== 'undefined') {
+      req.author.date_of_birth = req.body.author.date_of_birth;
     }
 
-    if (typeof req.body.date_of_death !== 'undefined') {
-      req.author.date_of_death = req.body.date_of_death;
+    if (typeof req.body.author.date_of_death !== 'undefined') {
+      req.author.date_of_death = req.body.author.date_of_death;
     }
 
-    if (typeof req.body.bio !== 'undefined') {
-      req.author.bio = req.body.bio;
+    if (typeof req.body.author.bio !== 'undefined') {
+      req.author.bio = req.body.author.bio;
     }
 
     if (req.author.created_by._id.toString() !== user_id.toString()) {

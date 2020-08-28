@@ -14,7 +14,7 @@ const { valid_book, invalid_book, alternate_book } = require('../mocks/book');
 chai.use(chaiHttp);
 const { expect } = chai;
 
-describe.only('Book tests', () => {
+describe('Book tests', () => {
   let mongoServer;
   let user;
   let alternate_user;
@@ -50,14 +50,14 @@ describe.only('Book tests', () => {
       .request(app)
       .post('/api/authors/')
       .set('authorization', `Bearer ${user.token}`)
-      .send(valid_author);
+      .send({ author: valid_author });
     author = author_resp.body.author;
 
     const alternate_author_resp = await chai
       .request(app)
       .post('/api/authors/')
       .set('authorization', `Bearer ${alternate_user.token}`)
-      .send(alternate_author);
+      .send({ author: alternate_author });
     alternate_author_obj = alternate_author_resp.body.author;
 
     const valid_book_resp = await chai

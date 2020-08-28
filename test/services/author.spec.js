@@ -51,14 +51,14 @@ describe('Author tests', () => {
       .request(app)
       .post('/api/authors/')
       .set('authorization', `Bearer ${user.token}`)
-      .send(valid_author);
+      .send({ author: valid_author });
     author = author_resp;
 
     const alternate_author_resp = await chai
       .request(app)
       .post('/api/authors/')
       .set('authorization', `Bearer ${alternate_user.token}`)
-      .send(alternate_author);
+      .send({ author: alternate_author });
     alternate_author_obj = alternate_author_resp.body.author;
   });
 
@@ -118,7 +118,7 @@ describe('Author tests', () => {
         .request(app)
         .patch(`/api/authors/${author_id}`)
         .set('authorization', `Bearer ${user.token}`)
-        .send(modified_author);
+        .send({ author: modified_author });
 
       const responseAuthor = response.body.author;
       expect(response.status).to.equal(201);
@@ -140,7 +140,7 @@ describe('Author tests', () => {
         .request(app)
         .patch(`/api/authors/${author_id}`)
         .set('authorization', `Bearer ${superuser.token}`)
-        .send(modified_author);
+        .send({ author: modified_author });
 
       const responseAuthor = response.body.author;
       expect(response.status).to.equal(201);
@@ -182,7 +182,7 @@ describe('Author tests', () => {
       const response = await chai
         .request(app)
         .post('/api/authors/')
-        .send(valid_author);
+        .send({ author: valid_author });
 
       expect(response.unauthorized).to.be.true;
       expect(response.status).to.equal(401);
@@ -196,7 +196,7 @@ describe('Author tests', () => {
         .request(app)
         .post('/api/authors/')
         .set('authorization', `Bearer ${user.token}`)
-        .send(invalid_author);
+        .send({ author: invalid_author });
 
       expect(response.status).to.equal(500);
       expect(response.body.author).to.be.undefined;
@@ -209,7 +209,7 @@ describe('Author tests', () => {
         .request(app)
         .patch('/api/authors/5f48345bdb170e117aa39151')
         .set('authorization', `Bearer ${user.token}`)
-        .send(modified_author);
+        .send({ author: modified_author });
 
       expect(response.status).to.equal(404);
       expect(response.body.author).to.be.undefined;
@@ -223,7 +223,7 @@ describe('Author tests', () => {
         .request(app)
         .patch(`/api/authors/${author_id}`)
         .set('authorization', `Bearer ${alternate_user.token}`)
-        .send(modified_author);
+        .send({ author: modified_author });
 
       expect(response.status).to.equal(401);
       expect(response.body.error).to.be.an('object');

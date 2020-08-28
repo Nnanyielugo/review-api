@@ -9,12 +9,15 @@ const {
   admin_user,
 } = require('../mocks/user');
 const { valid_author, alternate_author } = require('../mocks/author');
-const { valid_book, invalid_book, alternate_book } = require('../mocks/book');
+const {
+  valid_book, invalid_book,
+  alternate_book, modified_book,
+} = require('../mocks/book');
 
 chai.use(chaiHttp);
 const { expect } = chai;
 
-describe('Book tests', () => {
+describe.only('Book tests', () => {
   let mongoServer;
   let user;
   let alternate_user;
@@ -126,24 +129,46 @@ describe('Book tests', () => {
       expect(responseBook.author._id).to.equal(author._id);
     });
 
-    it.skip('updates single book', async () => {
+    it('updates single book', async () => {
       const response = await chai
         .request(app)
-        .post('/api/books/')
+        .patch(`/api/books/${book.body.book._id}`)
         .set('authorization', `Bearer ${user.token}`)
         .send({
           book: {
-            ...alternate_book,
+            ...modified_book,
             author_id: author._id,
           },
         });
 
       const responseBook = response.body.book;
-      expect(response.status).to.equal(201);
-      expect(responseBook.title).to.equal(alternate_book.title);
-      expect(responseBook.summary).to.equal(alternate_book.summary);
-      expect(responseBook.isbn).to.equal(alternate_book.isbn);
+      expect(response.status).to.equal(200);
+      expect(responseBook.title).to.equal(modified_book.title);
+      expect(responseBook.summary).to.equal(modified_book.summary);
+      expect(responseBook.isbn).to.equal(modified_book.isbn);
       expect(responseBook.author).to.equal(author._id);
+    });
+
+    it('lets admin update book it did not create', async () => {
+      const response = await chai
+        .request(app)
+        .patch(`/api/books/${book.body.book._id}`)
+        .set('authorization', `Bearer ${superuser.token}`)
+        .send({
+          book: {
+            ...modified_book,
+            author_id: author._id,
+          },
+        });
+
+      const responseBook = response.body.book;
+      expect(response.status).to.equal(200);
+      expect(responseBook.title).to.equal(modified_book.title);
+      expect(responseBook.summary).to.equal(modified_book.summary);
+      expect(responseBook.isbn).to.equal(modified_book.isbn);
+      expect(responseBook.author).to.equal(author._id);
+      expect(responseBook.edited_by).to.be.a('string');
+      expect(responseBook.edited_by).to.equal(superuser._id);
     });
 
     it.skip('deletes book', async () => {});
@@ -196,7 +221,33 @@ describe('Book tests', () => {
       expect(response.body.error).to.be.an('object');
       expect(response.body.error.message).to.equal('Book does not exist');
     });
-    it.skip('fails to update with invalid id', () => {});
+
+    it('fails to update with invalid id', async () => {
+      const response = await chai
+        .request(app)
+        .patch('/api/books/5f49249841523c293c3e387c')
+        .set('authorization', `Bearer ${user.token}`)
+        .send({ book: modified_book });
+
+      expect(response.status).to.equal(400);
+      expect(response.body.book).to.be.undefined;
+      expect(response.body.error).to.be.an('object');
+      expect(response.body.error.message).to.equal('Book does not exist');
+    });
+
+    it('refuses non-superuser update book created by another user', async () => {
+      const response = await chai
+        .request(app)
+        .patch(`/api/books/${book.body.book._id}`)
+        .set('authorization', `Bearer ${alternate_user.token}`)
+        .send({ book: modified_book });
+
+      expect(response.status).to.equal(401);
+      expect(response.body.book).to.be.undefined;
+      expect(response.body.error).to.be.an('object');
+      expect(response.body.error.message).to.equal('You must either be book creator or an admin to edit this book');
+    });
+
     it.skip('fails to delete with invalid id', () => {});
   });
 });

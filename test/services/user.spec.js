@@ -139,7 +139,6 @@ describe('User tests', () => {
       const response = await chai
         .request(app)
         .post(`/api/users/${user._id}/suspend`)
-        // .set('authorization', `Bearer ${alternate_user.token}`)
         .send({ user: { _id: user._id } });
 
       const responseBody = response.body;

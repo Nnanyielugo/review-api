@@ -112,7 +112,7 @@ describe('Author tests', () => {
       expect(responseAuthor.created_by._id.toString()).to.equal(user._id.toString());
     });
 
-    it('it modifies an existing author', async () => {
+    it('modifies an existing author', async () => {
       const author_id = author.body.author._id;
       const response = await chai
         .request(app)
@@ -134,7 +134,7 @@ describe('Author tests', () => {
       expect(responseAuthor.created_by._id.toString()).to.equal(user._id.toString());
     });
 
-    it('it lets a superuser edit an author it did not create', async () => {
+    it('lets a superuser edit an author it did not create', async () => {
       const author_id = author.body.author._id;
       const response = await chai
         .request(app)
@@ -217,7 +217,7 @@ describe('Author tests', () => {
       expect(response.body.error.message).to.equal('Author does not exist');
     });
 
-    it('it fails when user isn\'t creator of author, or superuser', async () => {
+    it('fails when user isn\'t creator of author, or superuser', async () => {
       const author_id = author.body.author._id;
       const response = await chai
         .request(app)

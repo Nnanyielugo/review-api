@@ -21,7 +21,9 @@ exports.detail = async function (req, res, next) {
       .populate('genre');
     if (!book) {
       return res.status(400).json({
-        message: 'Book does not exist',
+        error: {
+          message: 'Book does not exist',
+        },
       });
     }
 

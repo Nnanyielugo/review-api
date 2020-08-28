@@ -2,52 +2,52 @@ const { model } = require('mongoose');
 
 const Book = model('Book');
 
-exports.list = function (_, res, next) {
-  return Book
-    .find({})
-    .select('title author')
-    .populate('author')
-    .then((books) => {
-      res.status(200).json({
-        books,
-      });
-    })
-    .catch(next);
+exports.list = async function (_, res, next) {
+  try {
+    const books = await Book
+      .find()
+      .populate('author', 'first_name family_name bio');
+    return res.status(200).json({ books });
+  } catch (err) {
+    next(err);
+  }
 };
 
-exports.detail = function (req, res, next) {
-  return Book
-    .findById(req.params.id)
-    .populate('auhor')
-    .populate('genre')
-    .then((book) => {
-      if (!book) {
-        return res.status(400).json({
-          message: 'Book does not exist',
-        });
-      }
-      return res.send(200).json({
-        book,
+exports.detail = async function (req, res, next) {
+  try {
+    const book = await Book
+      .findById(req.params.book)
+      .populate('author', 'first_name family_name bio')
+      .populate('genre');
+    if (!book) {
+      return res.status(400).json({
+        message: 'Book does not exist',
       });
-    })
-    .catch(next);
+    }
+
+    return res.status(200).json({
+      book,
+    });
+  } catch (err) {
+    next(err);
+  }
 };
 
-exports.create = function (req, res, next) {
+exports.create = async function (req, res, next) {
   // TODO: sanitize and trim form values
-
-  const book = new Book({
-    title: req.body.title,
-    author: req.body.author,
-    summary: req.body.summary,
-    isbn: req.body.isbn,
-    genre: (typeof req.body.genre === 'undefined') ? [] : req.body.genre.split(','),
-  });
-
-  return book
-    .save()
-    .then((doc) => res.send(201).json({ book: doc }))
-    .catch(next);
+  try {
+    const book = new Book({
+      title: req.body.title,
+      author: req.body.author_id,
+      summary: req.body.summary,
+      isbn: req.body.isbn,
+      genre: (typeof req.body.genre === 'undefined') ? [] : req.body.genre.split(','),
+    });
+    await book.save();
+    return res.status(201).json({ book: book.toObjectJsonFor() });
+  } catch (err) {
+    next(err);
+  }
 };
 
 exports.update = function (req, res, next) {

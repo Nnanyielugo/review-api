@@ -4,24 +4,26 @@ const Author = model('Author');
 const Book = model('Book');
 const User = model('User');
 
-exports.preloadAuthor = function (req, res, next, id) {
-  Author
-    .findById(id)
-    .populate('created_by', 'username user_type')
-    .populate('edited_by', 'username user_type')
-    .populate('books', 'title summary')
-    .then((author) => {
-      if (!author) {
-        return res.status(404).json({
-          error: {
-            message: 'Author does not exist',
-          },
-        });
-      }
-      req.author = author;
-      return next();
-    })
-    .catch(next);
+exports.preloadAuthor = async function (req, res, next, id) {
+  try {
+    const author = await Author
+      .findById(id)
+      .populate('created_by', 'username user_type')
+      .populate('edited_by', 'username user_type')
+      .populate('books', 'title summary');
+
+    if (!author) {
+      return res.status(404).json({
+        error: {
+          message: 'Author does not exist',
+        },
+      });
+    }
+    req.author = author;
+    return next();
+  } catch (err) {
+    next(err);
+  }
 };
 
 exports.list = async function (_req, res, next) {

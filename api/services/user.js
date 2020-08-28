@@ -4,6 +4,14 @@ const user_utils = require('../utils/user_utils');
 
 module.exports.signup = async (req, res, next) => {
   try {
+    if (!req.body.user) {
+      return res.status(400).json({
+        error: {
+          message: 'You need to supply the user object with this request',
+        },
+      });
+    }
+
     const user = new User();
     user.username = req.body.user.username;
     user.email = req.body.user.email;
@@ -41,6 +49,14 @@ module.exports.signup = async (req, res, next) => {
 };
 
 module.exports.login = (req, res, next) => {
+  if (!req.body.user) {
+    return res.status(400).json({
+      error: {
+        message: 'You need to supply the user object with this request',
+      },
+    });
+  }
+
   if (!req.body.user.email) {
     return res.status(422).json({ error: { message: "Email can't be blank" } });
   }
@@ -94,6 +110,14 @@ module.exports.get = async (req, res, next) => {
 
 module.exports.update = async (req, res, next) => {
   try {
+    if (!req.body.user) {
+      return res.status(400).json({
+        error: {
+          message: 'You need to supply the user object with this request',
+        },
+      });
+    }
+
     const request_user = await User.findById(req.params.id);
     if (request_user._id.toString() !== req.payload.id.toString()) {
       res.status(400).json({

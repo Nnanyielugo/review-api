@@ -61,6 +61,14 @@ exports.detail = async function (req, res, next) {
 exports.create = async function (req, res, next) {
   // TODO: sanitize and trim form values
   try {
+    if (!req.body.book) {
+      return res.status(400).json({
+        error: {
+          message: 'You need to supply the book object with this request',
+        },
+      });
+    }
+
     const user_id = req.payload.id;
     const book = new Book({
       title: req.body.book.title,
@@ -81,6 +89,15 @@ exports.update = async function (req, res, next) {
   try {
     const user_id = req.payload.id;
     const user_obj = await User.findById(user_id);
+
+    if (!req.body.book) {
+      return res.status(400).json({
+        error: {
+          message: 'You need to supply the book object with this request',
+        },
+      });
+    }
+
     if (!user_id) {
       return res.sendStatus(401);
     }

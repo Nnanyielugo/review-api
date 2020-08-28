@@ -74,6 +74,18 @@ describe('Signup tests', () => {
   });
 
   describe('failing tests', () => {
+    it('returns an error when user object isn\'t provided', async () => {
+      const response = await chai
+        .request(app)
+        .post('/api/users/')
+        .send(valid_signup_user);
+
+      const responseBody = response.body;
+      expect(response.status).to.equal(400);
+      expect(responseBody.error).to.exist;
+      expect(responseBody.error.message).to.equal('You need to supply the user object with this request');
+    });
+
     it('fails for incomplete user details', async () => {
       const response = await chai
         .request(app)

@@ -55,5 +55,17 @@ describe('Login tests', () => {
       expect(response.body.error).to.be.an('object');
       expect(response.body.error.message).to.equal('Email or password is invalid');
     });
+
+    it('returns an error when user object isn\'t provided', async () => {
+      const response = await chai
+        .request(app)
+        .post('/api/users/login')
+        .send(valid_login);
+
+      const responseBody = response.body;
+      expect(response.status).to.equal(400);
+      expect(responseBody.error).to.exist;
+      expect(responseBody.error.message).to.equal('You need to supply the user object with this request');
+    });
   });
 });

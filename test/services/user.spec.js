@@ -109,11 +109,24 @@ describe('User tests', () => {
       alternate_user = _user_resp.body.user;
     });
 
+    it('returns an error when user object isn\'t provided', async () => {
+      const response = await chai
+        .request(app)
+        .patch(`/api/users/${user._id}`)
+        .set('authorization', `Bearer ${user.token}`);
+
+      const responseBody = response.body;
+      expect(response.status).to.equal(400);
+      expect(responseBody.error).to.exist;
+      expect(responseBody.error.message).to.equal('You need to supply the user object with this request');
+    });
+
     it('returns an error when another user tried to edit a user profile', async () => {
       const response = await chai
         .request(app)
         .patch(`/api/users/${user._id}`)
-        .set('authorization', `Bearer ${alternate_user.token}`);
+        .set('authorization', `Bearer ${alternate_user.token}`)
+        .send({ user: modified_user });
 
       const responseBody = response.body;
       expect(response.status).to.equal(400);

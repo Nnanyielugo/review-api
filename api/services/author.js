@@ -51,6 +51,14 @@ exports.detail = async function (req, res, next) {
 exports.create = async function (req, res, next) {
   try {
     // TODO: backend form validation
+    if (!req.body.author) {
+      return res.status(400).json({
+        error: {
+          message: 'You need to supply the author object with this request',
+        },
+      });
+    }
+
     const author = new Author({
       first_name: req.body.author.first_name,
       family_name: req.body.author.family_name,
@@ -70,6 +78,14 @@ exports.create = async function (req, res, next) {
 exports.update = async function (req, res, next) {
   // TODO:, sanitize and check data and id passed in.
   try {
+    if (!req.body.author) {
+      return res.status(400).json({
+        error: {
+          message: 'You need to supply the author object with this request',
+        },
+      });
+    }
+
     const user_id = req.payload.id;
     const author = await Author.findById(req.params.author);
     const user_obj = await User.findById(req.payload.id);

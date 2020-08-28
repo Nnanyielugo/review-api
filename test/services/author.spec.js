@@ -230,6 +230,31 @@ describe('Author tests', () => {
       expect(response.body.error.message).to.equal('You must either be author author or an admin to edit this author');
     });
 
+    it('fails when author object isn\'t provided for update', async () => {
+      const author_id = author.body.author._id;
+      const response = await chai
+        .request(app)
+        .patch(`/api/authors/${author_id}`)
+        .set('authorization', `Bearer ${user.token}`)
+        .send(modified_author);
+
+      expect(response.status).to.equal(400);
+      expect(response.body.error).to.be.an('object');
+      expect(response.body.error.message).to.equal('You need to supply the author object with this request');
+    });
+
+    it('fails when author object isn\'t provided for create', async () => {
+      const response = await chai
+        .request(app)
+        .post('/api/authors/')
+        .set('authorization', `Bearer ${user.token}`)
+        .send(modified_author);
+
+      expect(response.status).to.equal(400);
+      expect(response.body.error).to.be.an('object');
+      expect(response.body.error.message).to.equal('You need to supply the author object with this request');
+    });
+
     it('fails when user didn\'t create author, or is not a superuser', async () => {
       const response = await chai
         .request(app)

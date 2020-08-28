@@ -17,7 +17,7 @@ const {
 chai.use(chaiHttp);
 const { expect } = chai;
 
-describe.only('Book tests', () => {
+describe('Book tests', () => {
   let mongoServer;
   let user;
   let alternate_user;
@@ -246,6 +246,38 @@ describe.only('Book tests', () => {
       expect(response.body.book).to.be.undefined;
       expect(response.body.error).to.be.an('object');
       expect(response.body.error.message).to.equal('You must either be book creator or an admin to edit this book');
+    });
+
+    it('errors out when book object is not provided for create', async () => {
+      const response = await chai
+        .request(app)
+        .post('/api/books/')
+        .set('authorization', `Bearer ${user.token}`)
+        .send({
+          ...valid_book,
+          author_id: author._id,
+        });
+
+      expect(response.status).to.equal(400);
+      expect(response.body.book).to.be.undefined;
+      expect(response.body.error).to.be.an('object');
+      expect(response.body.error.message).to.equal('You need to supply the book object with this request');
+    });
+
+    it('errors out when book object is not provided for edit', async () => {
+      const response = await chai
+        .request(app)
+        .patch(`/api/books/${book.body.book._id}`)
+        .set('authorization', `Bearer ${user.token}`)
+        .send({
+          ...modified_book,
+          author_id: author._id,
+        });
+
+      expect(response.status).to.equal(400);
+      expect(response.body.book).to.be.undefined;
+      expect(response.body.error).to.be.an('object');
+      expect(response.body.error.message).to.equal('You need to supply the book object with this request');
     });
 
     it.skip('fails to delete with invalid id', () => {});

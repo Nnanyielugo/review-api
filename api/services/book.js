@@ -139,9 +139,23 @@ exports.update = async function (req, res, next) {
   }
 };
 
-exports.delete = function (req, res, next) {
-  return Book
-    .findByIdAndDelete(req.payload.id)
-    .then(() => res.send(204))
-    .catch(next);
+exports.delete = async function (req, res, next) {
+  try {
+    const user_id = req.payload.id;
+    const user_obj = await User.findById(user_id);
+
+    if ((req.book.created_by._id.toString() !== user_id.toString())
+      && user_obj.user_type !== 'admin') {
+      return res.status(401).json({
+        error: {
+          message: 'You must either be book creator or an admin to edit this book',
+        },
+      });
+    }
+
+    await Book.findByIdAndDelete(req.params.book);
+    return res.sendStatus(204);
+  } catch (err) {
+    next(err);
+  }
 };

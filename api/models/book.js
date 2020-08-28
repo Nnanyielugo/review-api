@@ -36,6 +36,8 @@ BookSchema.methods.toObjectJsonFor = function () {
     isbn: this.isbn,
     genre: this.genre,
     reviews: this.reviews,
+    created_by: this.created_by,
+    edited_by: this.edited_by,
   };
 };
 

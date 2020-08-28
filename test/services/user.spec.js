@@ -2,12 +2,12 @@ const chai = require('chai');
 const chaiHttp = require('chai-http');
 const mongoose = require('mongoose');
 const { MongoMemoryServer } = require('mongodb-memory-server');
-const connect_mongoose = require('../api/utils/mongoose_utils');
-const app = require('../app');
+const connect_mongoose = require('../../api/utils/mongoose_utils');
+const app = require('../../app');
 const {
   valid_signup_user, modified_user,
   admin_user, alternate_signup_user,
-} = require('./mocks/user');
+} = require('../mocks/user');
 
 chai.use(chaiHttp);
 const { expect } = chai;

@@ -12,6 +12,13 @@ module.exports.alternate_book = {
   isbn: '988-3-16-168410-9',
 };
 
+module.exports.modified_book = {
+  title: 'Fugit dolorum error distinctio rerum omnis.',
+  summary:
+   'Dolores corrupti similique. Qui veniam pariatur enim voluptatum tempore ut. Aperiam assumenda et odit ad libero. Est dignissimos quidem id a beatae sequi.\nEt placeat dolore. Assumenda ea quo. Iusto laboriosam excepturi omnis deserunt voluptatibus. Natus nesciunt eum et harum. Pariatur sit saepe. Voluptatem distinctio ex aut id qui voluptas voluptatibus numquam.\nDistinctio blanditiis aperiam reiciendis consectetur. Officia unde id qui voluptas necessitatibus dolorem quas ducimus consequatur. Illo minus ex expedita consequatur et iure sequi illum voluptatem. Omnis nobis eaque quaerat.\nAutem nihil sed qui molestias commodi. Voluptates natus est earum non atque est. Accusantium in aperiam quidem sunt. Illum debitis accusantium est delectus molestiae adipisci. Et et ut beatae suscipit.\nIn qui amet cum mollitia quaerat. Aperiam cum laudantium. Voluptas ducimus cupiditate aperiam voluptatem repudiandae officia ipsam eum. Sit dignissimos repellendus. Optio et omnis architecto iste reprehenderit excepturi hic dolore.\nVoluptatem facilis accusantium voluptatem est. Corporis iure et velit qui molestias accusamus incidunt eos ut. Eaque et laborum qui sint at. Maiores culpa ea repellendus optio voluptatum fugit qui rerum saepe.\nEum dignissimos doloremque ab omnis enim itaque labore. Ut dolorum sunt minus autem eos nisi laudantium. Aut officiis unde occaecati qui quia modi. Quasi qui saepe nobis neque. Et occaecati id porro animi aperiam.',
+  isbn: '978-3-16-148410-0',
+};
+
 module.exports.invalid_book = {
   title: this.valid_book.title,
 };

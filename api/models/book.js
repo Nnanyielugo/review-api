@@ -18,5 +18,17 @@ const BookSchema = Schema({
   }],
 }, { timestamps: true });
 
+BookSchema.methods.toObjectJsonFor = function () {
+  return {
+    _id: this._id,
+    title: this.title,
+    author: this.author,
+    summary: this.summary,
+    isbn: this.isbn,
+    genre: this.genre,
+    reviews: this.reviews,
+  };
+};
+
 const Book = mongoose.model('Book', BookSchema);
 module.exports = Book;

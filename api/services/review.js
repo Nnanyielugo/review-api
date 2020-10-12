@@ -85,21 +85,21 @@ exports.list = async function (req, res, next) {
   }
 };
 
-exports.get = function (req, res, next) {
-  Promise
-    .all([
+exports.get = async function (req, res, next) {
+  try {
+    const results = await Promise.all([
       req.payload
         ? User.findById(req.payload.id)
         : null,
       req.review
         .populate('author')
         .execPopulate(),
-    ])
-    .then((results) => {
-      const user = results[0];
-      return res.json({ review: req.review.toObjectJsonFor(user) });
-    })
-    .catch(next);
+    ]);
+    const user = results[0];
+    return res.json({ review: req.review.toObjectJsonFor(user) });
+  } catch (err) {
+    next(err);
+  }
 };
 
 exports.create = function (req, res, next) {

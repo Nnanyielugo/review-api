@@ -102,53 +102,58 @@ exports.get = async function (req, res, next) {
   }
 };
 
-exports.create = function (req, res, next) {
-  Promise
-    .all(
+exports.create = async function (req, res, next) {
+  try {
+    if (!req.body.review) {
+      return res.status(400).json({
+        error: {
+          message: 'You need to send the review object with this request',
+        },
+      });
+    }
+    const [user, book] = await Promise.all([
       User
         .findById(req.payload.id)
         .exec(),
       Book
         .findById(req.body.book_id)
         .exec(),
-    )
-    .then((results) => {
-      const [user, book] = results;
-      if (!user) {
-        return res.sendStatus(401);
-      }
-
-      if (user.suspended || user.suspension_timeline > Date.now()) {
-        return res.status(400).json({
-          error: {
-            message: 'Suspended users cannot make reviews!',
-          },
-        });
-      }
-
-      if (!book) {
-        return res.send(400).json({
-          error: {
-            message: 'The book you are trying to review does not exist!',
-          },
-        });
-      }
-
-      // TODO: handle file uploads
-
-      const review = new Review({
-        content: req.body.content,
-        tags: req.body.tags,
-        author: user, // user._id?
-        book,
+    ]);
+    if (!user) {
+      return res.sendStatus(401);
+    }
+    if (user.suspended || user.suspension_timeline > Date.now()) {
+      return res.status(400).json({
+        error: {
+          message: 'Suspended users cannot make reviews!',
+        },
       });
+    }
 
-      return review
-        .save()
-        .then(() => res.json({ review: review.toObjectJsonFor(user) }))
-        .catch(next);
-    })
-    .catch(next);
+    if (!book) {
+      return res.send(400).json({
+        error: {
+          message: 'The book you are trying to review does not exist!',
+        },
+      });
+    }
+
+    // TODO: handle file uploads
+
+    const review = new Review({
+      content: req.body.review.content,
+      tags: req.body.review.tags,
+      author: user, // user._id?
+      book,
+    });
+
+    return review
+      .save()
+      .then(() => res.json({ review: review.toObjectJsonFor(user) }))
+      .catch(next);
+  } catch (err) {
+    next(err);
+  }
 };
 
 exports.update = function (req, res, next) {

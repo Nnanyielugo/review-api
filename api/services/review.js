@@ -67,7 +67,7 @@ exports.list = async function (req, res, next) {
         .limit(+limit)
         .skip(+offset)
         .sort({ createdAt: 'desc' })
-        .populate('author')
+        .populate('review_author book')
         .exec(),
       Review
         .count(query)
@@ -116,7 +116,7 @@ exports.create = async function (req, res, next) {
         .findById(req.payload.id)
         .exec(),
       Book
-        .findById(req.body.book_id)
+        .findById(req.body.review.book_id)
         .exec(),
     ]);
     if (!user) {
@@ -131,7 +131,7 @@ exports.create = async function (req, res, next) {
     }
 
     if (!book) {
-      return res.send(400).json({
+      return res.status(400).json({
         error: {
           message: 'The book you are trying to review does not exist!',
         },
@@ -139,18 +139,15 @@ exports.create = async function (req, res, next) {
     }
 
     // TODO: handle file uploads
-
     const review = new Review({
       content: req.body.review.content,
       tags: req.body.review.tags,
-      author: user, // user._id?
+      review_author: user,
       book,
     });
 
-    return review
-      .save()
-      .then(() => res.json({ review: review.toObjectJsonFor(user) }))
-      .catch(next);
+    await review.save();
+    return res.status(201).json({ review: review.toObjectJsonFor(user) });
   } catch (err) {
     next(err);
   }

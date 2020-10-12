@@ -94,7 +94,13 @@ describe('Review tests', () => {
 
       expect(response.body.reviews).to.be.an('array');
       expect(response.body.reviewsCount).to.equal(1);
-      expect(response.body.reviews[0].slug).to.equal(review.body.review.slug)
+      expect(response.body.reviews[0].slug).to.equal(review.body.review.slug);
+    });
+
+    it('creates a single review', async () => {
+      expect(review.body.error).to.be.undefined;
+      expect(review.status).to.equal(201);
+      expect(review.body.review.content).to.equal(valid_review.content);
     });
   });
 });

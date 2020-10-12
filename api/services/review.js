@@ -4,87 +4,85 @@ const User = model('User');
 const Review = model('Review');
 const Book = model('Book');
 
-exports.preloadReview = function (req, res, next, slug) {
-  Review
-    .findOne({ slug })
-    .populate('author')
-    .then((review) => {
-      if (!review) {
-        return res.status(404).json({
-          error: {
-            message: 'Review does not exist!',
-          },
-        });
-      }
-      req.review = review;
-      return next();
-    })
-    .catch(next);
+exports.preloadReview = async function (req, res, next, slug) {
+  try {
+    const review = await Review
+      .findOne({ slug })
+      .populate('author');
+
+    if (!review) {
+      return res.status(404).json({
+        error: {
+          message: 'Review does not exist!',
+        },
+      });
+    }
+    req.review = review;
+    return next();
+  } catch (err) {
+    next(err);
+  }
 };
 
-exports.list = function (req, res, next) {
-  const query = {};
-  let limit = {};
-  let offset = 0;
+exports.list = async function (req, res, next) {
+  try {
+    const query = {};
+    let limit = {};
+    let offset = 0;
 
-  if (typeof req.query.limit !== 'undefined') {
-    limit = req.query.limit;
-  }
-  if (typeof req.query.offset !== 'undefined') {
-    offset = req.query.offset;
-  }
-  if (typeof req.query.tags !== 'undefined') {
-    query.tags = { $in: [req.query.tags] };
-  }
+    if (typeof req.query.limit !== 'undefined') {
+      limit = req.query.limit;
+    }
+    if (typeof req.query.offset !== 'undefined') {
+      offset = req.query.offset;
+    }
+    if (typeof req.query.tags !== 'undefined') {
+      query.tags = { $in: [req.query.tags] };
+    }
 
-  Promise
-    .all([
-      req.query.author
-        ? User.findOne({ username: req.query.author })
+    // find author and favoriter if they were specified in query
+    const [author, favoriter] = await Promise
+      .all([
+        req.query.author
+          ? User.findOne({ username: req.query.author })
+          : null,
+        req.query.favorited
+          ? User.findOne({ username: req.query.favorited })
+          : null,
+      ]);
+
+    if (author) {
+      query.author = author._id;
+    }
+
+    if (favoriter) {
+      query._id = { $in: favoriter.favorites };
+    } else if (req.query.favorited) {
+      query._id = { $in: [] };
+    }
+
+    const [reviews, reviewsCount, user] = await Promise.all([
+      Review
+        .find(query)
+        .limit(+limit)
+        .skip(+offset)
+        .sort({ createdAt: 'desc' })
+        .populate('author')
+        .exec(),
+      Review
+        .count(query)
+        .exec(),
+      req.payload
+        ? User.findById(req.payload.id)
         : null,
-      req.query.favorited
-        ? User.findOne({ username: req.query.favorited })
-        : null,
-    ])
-    .then((result) => {
-      const [author, favoriter] = result;
-
-      if (author) {
-        query.author = author._id;
-      }
-
-      if (favoriter) {
-        query._id = { $in: favoriter.favorites };
-      } else if (req.query.favorited) {
-        query._id = { $in: [] };
-      }
-
-      return Promise
-        .all([
-          Review
-            .find(query)
-            .limit(+limit)
-            .skip(+offset)
-            .sort({ createdAt: 'desc' })
-            .populate('author')
-            .exec(),
-          Review
-            .count(query)
-            .exec(),
-          req.payload
-            ? User.findById(req.payload.id)
-            : null,
-        ])
-        .then((results) => {
-          const [reviews, reviewsCount, user] = results;
-          return res.json({
-            reviews: reviews.map((review) => review.toObjectJsonFor(user)),
-            reviewsCount,
-          });
-        })
-        .catch(next);
-    })
-    .catch(next);
+    ]);
+    return res.json({
+      reviews: reviews.map((review) => review.toObjectJsonFor(user)),
+      reviewsCount,
+    });
+  } catch (err) {
+    next(err);
+  }
 };
 
 exports.get = function (req, res, next) {
@@ -141,7 +139,7 @@ exports.create = function (req, res, next) {
       const review = new Review({
         content: req.body.content,
         tags: req.body.tags,
-        author: user,
+        author: user, // user._id?
         book,
       });
 

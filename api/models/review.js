@@ -1,12 +1,12 @@
 const mongoose = require('mongoose');
 const uniqueValidator = require('mongoose-unique-validator');
 const slug = require('slug');
-const uuid = require('uuid/dist/v4');
+const { v4: uuid } = require('uuid');
 
 const User = mongoose.model('User');
 
 const ReviewSchema = new mongoose.Schema({
-  author: {
+  review_author: {
     type: mongoose.Schema.Types.ObjectId,
     ref: 'User',
   },
@@ -44,7 +44,7 @@ ReviewSchema.pre('validate', function (next) {
 });
 
 ReviewSchema.methods.slugify = function () {
-  this.slug = slug(this.author) + uuid() + (Math.random()).toString();
+  this.slug = slug(String(this.review_author._id)) + uuid() + (Math.random()).toString();
 };
 
 ReviewSchema.methods.updateFavoriteCount = function () {
@@ -66,7 +66,8 @@ ReviewSchema.methods.toObjectJsonFor = function (user) {
     image_src: this.image_src,
     favorited: user ? user.isFavorite(this._id) : false,
     favorites_count: this.favorites_count,
-    author: this.author.toObjectJsonFor(user),
+    author: this.review_author.toObjectJsonFor(user),
+    book: this.book.toObjectJsonFor(),
   };
 };
 

@@ -37,7 +37,10 @@ const ReviewSchema = new mongoose.Schema({
     },
   ],
   // image_src: String, // TODO: implement array of images or use book image
-  tags: [String],
+  tags: [{
+    type: mongoose.Schema.Types.ObjectId,
+    ref: 'Genre',
+  }],
 }, { timestamps: true });
 
 ReviewSchema.plugin(uniqueValidator, { message: '{Path} is already taken.' });

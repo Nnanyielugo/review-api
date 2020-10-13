@@ -68,6 +68,7 @@ ReviewSchema.methods.updateFavoriteCount = function () {
 
 ReviewSchema.methods.toObjectJsonFor = function (user) {
   return {
+    _id: this._id,
     slug: this.slug,
     content: this.content,
     createdAt: this.createdAt,

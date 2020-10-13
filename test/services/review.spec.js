@@ -5,7 +5,7 @@ const mongoose = require('mongoose');
 const connect_mongoose = require('../../api/utils/mongoose_utils');
 const app = require('../../app');
 
-const { valid_review, alternate_review } = require('../mocks/review');
+const { valid_review, alternate_review, invalid_review } = require('../mocks/review');
 const { valid_book, alternate_book } = require('../mocks/book');
 const { valid_signup_user, admin_user, alternate_signup_user } = require('../mocks/user');
 const { valid_author, alternate_author } = require('../mocks/author');
@@ -13,7 +13,7 @@ const { valid_author, alternate_author } = require('../mocks/author');
 chai.use(chaiHttp);
 const { expect } = chai;
 
-describe('Review tests', () => {
+describe.only('Review tests', () => {
   let mongoServer;
   let user;
   let alternate_user;
@@ -86,7 +86,7 @@ describe('Review tests', () => {
     await mongoServer.stop();
   });
 
-  describe.only('passing tests', () => {
+  describe('passing tests', () => {
     it('fetches list of reviews', async () => {
       const response = await chai
         .request(app)
@@ -101,6 +101,52 @@ describe('Review tests', () => {
       expect(review.body.error).to.be.undefined;
       expect(review.status).to.equal(201);
       expect(review.body.review.content).to.equal(valid_review.content);
+    });
+  });
+  describe('failing tests', () => {
+    it('fails when no token is provided for protected routes', async () => {
+      const response = await chai
+        .request(app)
+        .post('/api/reviews/')
+        .send({
+          review: {
+            ...valid_review,
+            book_id: book._id,
+          },
+        });
+      expect(response.unauthorized).to.be.true;
+      expect(response.body.error).to.exist;
+      expect(response.body.error.message).to.equal('No authorization token was found');
+    });
+    it('fails to create review with invalid review object', async () => {
+      const response = await chai
+        .request(app)
+        .post('/api/reviews/')
+        .set('authorization', `Bearer ${user.token}`)
+        .send({
+          review: {
+            ...invalid_review,
+            book_id: book._id,
+          },
+        });
+      expect(response.status).to.equal(500)
+      expect(response.body.error).to.be.an('object');
+      expect(response.body.error.message).to.equal('Review validation failed: content: Path `content` is required.');
+    });
+    it('fails to create with an invalid bookid', async () => {
+      const response = await chai
+        .request(app)
+        .post('/api/reviews/')
+        .set('authorization', `Bearer ${user.token}`)
+        .send({
+          review: {
+            ...invalid_review,
+            book_id: '5eb647261876da18d219125b',
+          },
+        });
+      expect(response.status).to.equal(400);
+      expect(response.body.error).to.be.an('object');
+      expect(response.body.error.message).to.equal('The book you are trying to review does not exist!');
     });
   });
 });

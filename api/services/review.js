@@ -8,7 +8,7 @@ exports.preloadReview = async function (req, res, next, slug) {
   try {
     const review = await Review
       .findOne({ slug })
-      .populate('author');
+      .populate('review_author book');
 
     if (!review) {
       return res.status(404).json({
@@ -67,7 +67,8 @@ exports.list = async function (req, res, next) {
         .limit(+limit)
         .skip(+offset)
         .sort({ createdAt: 'desc' })
-        .populate('review_author book')
+        .populate('review_author', 'username')
+        .populate('book', 'author genre summary')
         .exec(),
       Review
         .count(query)
@@ -87,16 +88,16 @@ exports.list = async function (req, res, next) {
 
 exports.get = async function (req, res, next) {
   try {
-    const results = await Promise.all([
-      req.payload
-        ? User.findById(req.payload.id)
-        : null,
-      req.review
-        .populate('author')
-        .execPopulate(),
-    ]);
-    const user = results[0];
-    return res.json({ review: req.review.toObjectJsonFor(user) });
+    // const results = await Promise.all([
+    //   req.payload
+    //     ? User.findById(req.payload.id)
+    //     : null,
+    //   req.review
+    //     .populate('author')
+    //     .execPopulate(),
+    // ]);
+    // const user = results[0];
+    // return res.json({ review: req.review.toObjectJsonFor(user) });
   } catch (err) {
     next(err);
   }
@@ -147,6 +148,8 @@ exports.create = async function (req, res, next) {
     });
 
     await review.save();
+    await book.reviews.push(review._id);
+    await book.save(); // TODO: check if there is a better way of doing this
     return res.status(201).json({ review: review.toObjectJsonFor(user) });
   } catch (err) {
     next(err);
@@ -169,11 +172,11 @@ exports.update = function (req, res, next) {
         });
       }
 
-      if (typeof req.body.content !== 'undefined') {
+      if (typeof req.body.review.content !== 'undefined') {
         req.review.content = req.body.content;
       }
 
-      if (typeof req.body.tags !== 'undefined') {
+      if (typeof req.body.review.tags !== 'undefined') {
         req.review.tags = req.body.tags;
       }
 

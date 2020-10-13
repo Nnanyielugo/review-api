@@ -102,7 +102,28 @@ describe.only('Review tests', () => {
       expect(review.status).to.equal(201);
       expect(review.body.review.content).to.equal(valid_review.content);
     });
+
+    it('adds review id to book.reviews of the book being reviewed', () => {
+      expect(review.body.error).to.be.undefined;
+      expect(review.status).to.equal(201);
+      expect(review.body.review.book.reviews[0].toString()).to.equal(review.body.review._id);
+    });
+
+    it('edits a review', async () => {
+      const response = await chai
+        .request(app)
+        .patch(`/api/reviews/${review.body.review.slug}`)
+        .set('authorization', `Bearer ${user.token}`)
+        .send({
+          review: {
+            ...alternate_review,
+          },
+        });
+
+      console.log('resp', response.body)
+    });
   });
+
   describe('failing tests', () => {
     it('fails when no token is provided for protected routes', async () => {
       const response = await chai
@@ -118,6 +139,7 @@ describe.only('Review tests', () => {
       expect(response.body.error).to.exist;
       expect(response.body.error.message).to.equal('No authorization token was found');
     });
+
     it('fails to create review with invalid review object', async () => {
       const response = await chai
         .request(app)
@@ -129,10 +151,11 @@ describe.only('Review tests', () => {
             book_id: book._id,
           },
         });
-      expect(response.status).to.equal(500)
+      expect(response.status).to.equal(500);
       expect(response.body.error).to.be.an('object');
       expect(response.body.error.message).to.equal('Review validation failed: content: Path `content` is required.');
     });
+
     it('fails to create with an invalid bookid', async () => {
       const response = await chai
         .request(app)

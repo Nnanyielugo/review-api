@@ -9,17 +9,23 @@ const ReviewSchema = new mongoose.Schema({
   review_author: {
     type: mongoose.Schema.Types.ObjectId,
     ref: 'User',
+    required: true,
   },
   slug: {
     type: String,
     lowercase: true,
     unique: true,
+    required: true,
   },
   book: {
     type: mongoose.Schema.Types.ObjectId,
     ref: 'Book',
+    required: true,
   },
-  content: String,
+  content: {
+    type: String,
+    required: true,
+  },
   favorites_count: {
     type: Number,
     default: 0,

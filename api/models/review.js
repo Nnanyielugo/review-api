@@ -76,7 +76,7 @@ ReviewSchema.methods.toObjectJsonFor = function (user) {
     image_src: this.image_src,
     favorited: user ? user.isFavorite(this._id) : false,
     favorites_count: this.favorites_count,
-    author: this.review_author.toObjectJsonFor(user),
+    review_author: this.review_author.toObjectJsonFor(user),
     book: this.book.toObjectJsonFor(),
   };
 };

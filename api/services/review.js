@@ -4,16 +4,17 @@ const User = model('User');
 const Review = model('Review');
 const Book = model('Book');
 
-exports.preloadReview = async function (req, res, next, slug) {
+exports.preloadReview = async function (req, res, next, id) {
   try {
     const review = await Review
-      .findOne({ slug })
-      .populate('review_author book');
+      .findById(id)
+      .populate('review_author', 'username follower_count first_name family_name')
+      .populate('book', 'title summary author');
 
     if (!review) {
       return res.status(404).json({
         error: {
-          message: 'Review does not exist!',
+          message: 'The review you are looking for does not exist.',
         },
       });
     }
@@ -108,7 +109,7 @@ exports.create = async function (req, res, next) {
     if (!req.body.review) {
       return res.status(400).json({
         error: {
-          message: 'You need to send the review object with this request',
+          message: 'You need to send the review object with this request.',
         },
       });
     }
@@ -156,38 +157,46 @@ exports.create = async function (req, res, next) {
   }
 };
 
-exports.update = function (req, res, next) {
-  User
-    .findById(req.payload.id)
-    .then((user) => {
-      if (req.review.author._id.toString() !== req.payload.id.toString()) {
-        return res.sendStatus(403);
-      }
+exports.update = async function (req, res, next) {
+  try {
+    if (!req.body.review) {
+      return res.status(400).json({
+        error: {
+          message: 'You need to send the review object with this request.',
+        },
+      });
+    }
 
-      if (user.suspended || user.suspension_timeline > Date.now()) {
-        return res.status(400).json({
-          error: {
-            message: 'Suspended users cannot make reviews!',
-          },
-        });
-      }
+    if (req.review.review_author._id.toString() !== req.payload.id.toString()) {
+      return res.sendStatus(403);
+    }
 
-      if (typeof req.body.review.content !== 'undefined') {
-        req.review.content = req.body.content;
-      }
+    const user = await User.findById(req.payload.id);
+    if (user.suspended || user.suspension_timeline > Date.now()) {
+      return res.status(400).json({
+        error: {
+          message: 'Suspended users cannot make reviews!',
+        },
+      });
+    }
 
-      if (typeof req.body.review.tags !== 'undefined') {
-        req.review.tags = req.body.tags;
-      }
+    if (typeof req.body.review.content !== 'undefined') {
+      req.review.content = req.body.review.content;
+    }
 
-      // TODO: implement image file paths/link
+    if (typeof req.body.review.tags !== 'undefined') {
+      req.review.tags = req.body.review.tags;
+    }
 
-      return req.review
-        .save()
-        .then((review) => res.json({ review: review.toObjectJsonFor(user) }))
-        .catch(next);
-    })
-    .catch(next);
+    await req.review.updateOne();
+    const doc = req.review.toObjectJsonFor(user);
+    return res.status(200).json({ review: doc });
+
+    // const review = await req.review.save();
+    // return res.json({ review: review.toObjectJsonFor(user) });
+  } catch (err) {
+    next(err);
+  }
 };
 
 exports.delete = function (req, res, next) {

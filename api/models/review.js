@@ -1,7 +1,5 @@
 const mongoose = require('mongoose');
 const uniqueValidator = require('mongoose-unique-validator');
-const slug = require('slug');
-const { v4: uuid } = require('uuid');
 
 const User = mongoose.model('User');
 
@@ -9,12 +7,6 @@ const ReviewSchema = new mongoose.Schema({
   review_author: {
     type: mongoose.Schema.Types.ObjectId,
     ref: 'User',
-    required: true,
-  },
-  slug: {
-    type: String,
-    lowercase: true,
-    unique: true,
     required: true,
   },
   book: {
@@ -45,17 +37,6 @@ const ReviewSchema = new mongoose.Schema({
 
 ReviewSchema.plugin(uniqueValidator, { message: '{Path} is already taken.' });
 
-ReviewSchema.pre('validate', function (next) {
-  if (!this.slug) {
-    this.slugify();
-  }
-  next();
-});
-
-ReviewSchema.methods.slugify = function () {
-  this.slug = slug(String(this.review_author._id)) + uuid() + (Math.random()).toString();
-};
-
 ReviewSchema.methods.updateFavoriteCount = function () {
   const review = this;
   return User
@@ -69,7 +50,6 @@ ReviewSchema.methods.updateFavoriteCount = function () {
 ReviewSchema.methods.toObjectJsonFor = function (user) {
   return {
     _id: this._id,
-    slug: this.slug,
     content: this.content,
     createdAt: this.createdAt,
     updatedAt: this.updatedAt,

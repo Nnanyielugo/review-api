@@ -13,7 +13,7 @@ const { valid_author, alternate_author } = require('../mocks/author');
 chai.use(chaiHttp);
 const { expect } = chai;
 
-describe.only('Review tests', () => {
+describe('Review tests', () => {
   let mongoServer;
   let user;
   let alternate_user;
@@ -112,7 +112,7 @@ describe.only('Review tests', () => {
     it('edits a review', async () => {
       const response = await chai
         .request(app)
-        .patch(`/api/reviews/${review.body.review.slug}`)
+        .patch(`/api/reviews/${review.body.review._id}`)
         .set('authorization', `Bearer ${user.token}`)
         .send({
           review: {
@@ -120,7 +120,10 @@ describe.only('Review tests', () => {
           },
         });
 
-      console.log('resp', response.body)
+      expect(response.status).to.equal(200);
+      expect(response.body.error).to.be.undefined;
+      expect(response.body.review._id).to.equal(review.body.review._id);
+      expect(response.body.review.content).to.equal(alternate_review.content);
     });
   });
 
@@ -170,6 +173,32 @@ describe.only('Review tests', () => {
       expect(response.status).to.equal(400);
       expect(response.body.error).to.be.an('object');
       expect(response.body.error.message).to.equal('The book you are trying to review does not exist!');
+    });
+
+    it('fails to update witout a review object', async () => {
+      const response = await chai
+        .request(app)
+        .patch(`/api/reviews/${review.body.review._id}`)
+        .set('authorization', `Bearer ${user.token}`)
+        .send({});
+      expect(response.status).to.equal(400);
+      expect(response.body.error).to.be.an('object');
+      expect(response.body.error.message).to.equal('You need to send the review object with this request.');
+    });
+
+    it('fails to update witout an invalid review id', async () => {
+      const response = await chai
+        .request(app)
+        .patch('/api/reviews/5eb647261876da18d219125b')
+        .set('authorization', `Bearer ${user.token}`)
+        .send({
+          review: {
+            ...alternate_review,
+          },
+        });
+      expect(response.status).to.equal(404);
+      expect(response.body.error).to.be.an('object');
+      expect(response.body.error.message).to.equal('The review you are looking for does not exist.');
     });
   });
 });

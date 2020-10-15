@@ -89,16 +89,8 @@ exports.list = async function (req, res, next) {
 
 exports.get = async function (req, res, next) {
   try {
-    // const results = await Promise.all([
-    //   req.payload
-    //     ? User.findById(req.payload.id)
-    //     : null,
-    //   req.review
-    //     .populate('author')
-    //     .execPopulate(),
-    // ]);
-    // const user = results[0];
-    // return res.json({ review: req.review.toObjectJsonFor(user) });
+    const user = await User.findById(req.payload.id);
+    return res.json({ review: req.review.toObjectJsonFor(user) });
   } catch (err) {
     next(err);
   }

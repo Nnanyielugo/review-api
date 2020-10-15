@@ -10,6 +10,7 @@ chai.use(chaiHttp);
 const { expect } = chai;
 
 describe('Login tests', () => {
+  const user_path = '/api/users';
   let mongoServer;
 
   beforeEach(async () => {
@@ -19,7 +20,7 @@ describe('Login tests', () => {
     // register user
     await chai
       .request(app)
-      .post('/api/users/')
+      .post(`${user_path}/`)
       .send({ user: valid_signup_user });
   });
 
@@ -32,7 +33,7 @@ describe('Login tests', () => {
     it('successfully logs in', async () => {
       const response = await chai
         .request(app)
-        .post('/api/users/login')
+        .post(`${user_path}/login`)
         .send({ user: valid_login });
 
       const responseUser = response.body.user;
@@ -48,7 +49,7 @@ describe('Login tests', () => {
     it('fails for wrong user details', async () => {
       const response = await chai
         .request(app)
-        .post('/api/users/login')
+        .post(`${user_path}/login`)
         .send({ user: invalid_login });
 
       expect(response.body.user).to.be.undefined;
@@ -59,7 +60,7 @@ describe('Login tests', () => {
     it('returns an error when user object isn\'t provided', async () => {
       const response = await chai
         .request(app)
-        .post('/api/users/login')
+        .post(`${user_path}/login`)
         .send(valid_login);
 
       const responseBody = response.body;

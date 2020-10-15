@@ -4,7 +4,7 @@ const User = mongoose.model('User');
 
 const CommentSchema = new mongoose.Schema({
   content: String,
-  author: {
+  comment_author: {
     type: mongoose.Schema.Types.ObjectId,
     ref: 'User',
   },
@@ -34,7 +34,8 @@ CommentSchema.methods.toObjectJsonFor = function (user) {
     content: this.content,
     createdAt: this.createdAt,
     updatedAt: this.updatedAt,
-    author: this.author.toObjectJsonFor(user),
+    review: this.review,
+    comment_author: this.comment_author.toObjectJsonFor(user),
   };
 };
 

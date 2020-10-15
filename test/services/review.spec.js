@@ -125,6 +125,32 @@ describe('Review tests', () => {
       expect(response.body.review._id).to.equal(review.body.review._id);
       expect(response.body.review.content).to.equal(alternate_review.content);
     });
+
+    it('deletes a review', async () => {
+      const response = await chai
+        .request(app)
+        .delete(`/api/reviews/${review.body.review._id}`)
+        .set('authorization', `Bearer ${user.token}`);
+      const list = await chai
+        .request(app)
+        .get('/api/reviews/');
+
+      expect(response.status).to.equal(204);
+      expect(list.body.reviewsCount).to.equal(0);
+    });
+
+    it('lets admin user delete a review it did not create', async () => {
+      const response = await chai
+        .request(app)
+        .delete(`/api/reviews/${review.body.review._id}`)
+        .set('authorization', `Bearer ${superuser.token}`);
+      const list = await chai
+        .request(app)
+        .get('/api/reviews/');
+
+      expect(response.status).to.equal(204);
+      expect(list.body.reviewsCount).to.equal(0);
+    });
   });
 
   describe('failing tests', () => {
@@ -175,7 +201,7 @@ describe('Review tests', () => {
       expect(response.body.error.message).to.equal('The book you are trying to review does not exist!');
     });
 
-    it('fails to when suspended users attempt to create reviews', async () => {
+    it('fails when suspended users attempt to create reviews', async () => {
       await chai
         .request(app)
         .post(`/api/users/${user._id}/suspend`)
@@ -224,7 +250,7 @@ describe('Review tests', () => {
       expect(response.body.error.message).to.equal('The review you are looking for does not exist.');
     });
 
-    it('fails to when suspended users attempt to update reviews', async () => {
+    it('fails when suspended users attempt to update reviews', async () => {
       await chai
         .request(app)
         .post(`/api/users/${user._id}/suspend`)
@@ -244,6 +270,45 @@ describe('Review tests', () => {
       expect(response.status).to.equal(400);
       expect(response.body.error).to.be.an('object');
       expect(response.body.error.message).to.equal('Suspended users cannot make reviews!');
+    });
+
+    it('fails when a user attempts to update a review it did not create', async () => {
+      const response = await chai
+        .request(app)
+        .patch(`/api/reviews/${review.body.review._id}`)
+        .set('authorization', `Bearer ${alternate_user.token}`)
+        .send({
+          review: {
+            ...alternate_review,
+            book_id: book._id,
+          },
+        });
+      expect(response.status).to.equal(403);
+    });
+
+    it('fails to delete review with invalid id', async () => {
+      const response = await chai
+        .request(app)
+        .delete('/api/reviews/5f49249841523c293c3e387c')
+        .set('authorization', `Bearer ${user.token}`);
+
+      expect(response.status).to.equal(404);
+      expect(response.body.error).to.be.an('object');
+      expect(response.body.error.message).to.equal('The review you are looking for does not exist.');
+    });
+
+    it('fails to delete when another user attempts do delete a review it did not create', async () => {
+      const response = await chai
+        .request(app)
+        .delete(`/api/reviews/${review.body.review._id}`)
+        .set('authorization', `Bearer ${alternate_user.token}`);
+      const list = await chai
+        .request(app)
+        .get('/api/reviews/');
+
+      expect(response.status).to.equal(403);
+      expect(response.body.error.message).to.equal('You must either be book creator or an admin to delete this review');
+      expect(list.body.reviewsCount).to.equal(1);
     });
   });
 });

@@ -7,7 +7,7 @@ router.param('review', reviews.preloadReview);
 router.param('comment', comments.preloadComment);
 
 router.get('/', auth.optional, reviews.list);
-router.get('/review', auth.optional, reviews.get);
+router.get('/:review', auth.optional, reviews.get);
 router.post('/', auth.required, reviews.create);
 router.patch('/:review', auth.required, reviews.update);
 router.delete('/:review', auth.required, reviews.delete);

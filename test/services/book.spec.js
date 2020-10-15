@@ -316,7 +316,7 @@ describe('Book tests', () => {
 
       expect(response.status).to.equal(401);
       expect(response.body.error).to.be.an('object');
-      expect(response.body.error.message).to.equal('You must either be book creator or an admin to edit this book');
+      expect(response.body.error.message).to.equal('You must either be book creator or an admin to delete this book');
     });
   });
 });

@@ -148,7 +148,7 @@ exports.delete = async function (req, res, next) {
       && user_obj.user_type !== 'admin') {
       return res.status(401).json({
         error: {
-          message: 'You must either be book creator or an admin to edit this book',
+          message: 'You must either be book creator or an admin to delete this book',
         },
       });
     }

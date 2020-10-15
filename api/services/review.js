@@ -199,24 +199,32 @@ exports.update = async function (req, res, next) {
   }
 };
 
-exports.delete = function (req, res, next) {
-  User
-    .findById(req.payload.id)
-    .then((user) => {
-      if (!user) {
-        return res.sendStatus(401);
-      }
+exports.delete = async function (req, res, next) {
+  try {
+    const user_id = req.payload.id;
+    const user = await User.findById(user_id);
+    if (!user) {
+      return res.status(400).json({
+        error: {
+          message: 'The user you requested does not exist!',
+        },
+      });
+    }
 
-      if (req.review.author._id.toString() !== req.payload.id.toString()) {
-        return res.sendStatus(403);
-      }
+    if ((req.review.review_author._id.toString() !== user_id.toString())
+    && user.user_type !== 'admin') {
+      return res.status(403).json({
+        error: {
+          message: 'You must either be book creator or an admin to delete this review',
+        },
+      });
+    }
 
-      return req.review
-        .remove()
-        .then(() => res.sendStatus(204))
-        .catch(next);
-    })
-    .catch(next);
+    await req.review.remove();
+    return res.sendStatus(204);
+  } catch (err) {
+    next(err);
+  }
 };
 
 exports.favorite = function (req, res, next) {

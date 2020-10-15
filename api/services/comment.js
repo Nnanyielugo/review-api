@@ -28,7 +28,7 @@ exports.get = function (req, res, next) {
       .populate({
         path: 'comments',
         populate: {
-          path: 'author',
+          path: 'comment_author',
         },
         options: {
           sort: {
@@ -44,39 +44,36 @@ exports.get = function (req, res, next) {
     .catch(next);
 };
 
-exports.create = function (req, res, next) {
-  User
-    .findById(req.payload.id)
-    .then((user) => {
-      if (!user) {
-        return res.sendStatus(401);
-      }
+exports.create = async function (req, res, next) {
+  try {
+    const user = await User.findById(req.payload.id);
+    if (!user) {
+      return res.sendStatus(401);
+    }
 
-      if (user.suspended || user.suspension_timeline > Date.now()) {
-        return res.status(400).json({
-          error: {
-            message: 'Suspended users cannot leave comments!',
-          },
-        });
-      }
+    if (user.suspended || user.suspension_timeline > Date.now()) {
+      return res.status(403).json({
+        error: {
+          message: 'Suspended users cannot leave comments!',
+        },
+      });
+    }
 
-      const comment = new Comment(req.body.comment);
-      comment.review = req.review;
-      comment.author = user;
+    const comment = new Comment({
+      content: req.body.comment.content,
+      review: req.review._id,
+      comment_author: user,
+    });
 
-      return comment
-        .save()
-        .then(() => {
-          req.review.comments.push(comment);
-
-          return req.review
-            .save()
-            .then((_review) => res.json({
-              comment: comment.toObjectJsonFor(user),
-            }));
-        });
-    })
-    .catch(next);
+    await comment.save();
+    await req.review.comments.push(comment);
+    await req.review.save();
+    return res.json({
+      comment: comment.toObjectJsonFor(user),
+    });
+  } catch (err) {
+    next(err);
+  }
 };
 
 exports.update = function (req, res, next) {
@@ -87,7 +84,7 @@ exports.update = function (req, res, next) {
         return req.sendStatus(401);
       }
 
-      const comment_author_id = req.comment.author._id;
+      const comment_author_id = req.comment.comment_author._id;
       if (comment_author_id.toString() !== req.payload.id.toString()) {
         return res.sendStatus(403);
       }
@@ -141,8 +138,8 @@ exports.update = function (req, res, next) {
 };
 
 exports.delete = function (req, res, next) {
-  const author_id = req.comment_author_id;
-  if (author_id.toString() !== req.payload.toString()) {
+  const comment_author_id = req.comment.comment_author._id;
+  if (comment_author_id.toString() !== req.payload.toString()) {
     res.sendStatus(401);
   }
 

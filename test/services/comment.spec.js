@@ -105,4 +105,18 @@ describe.only('Comment tests', () => {
     await mongoose.disconnect();
     await mongoServer.stop();
   });
+
+  describe('passing tests', () => {
+    it('creates a comment', async () => {
+      const response = await chai
+        .request(app)
+        .get(`${review_path}/${review._id}`)
+        .set('authorization', `Bearer ${user.token}`);
+
+      const response_comment = comment.body.comment;
+      expect(response_comment.content).to.equal(valid_comment.content);
+      expect(response_comment.review).to.equal(review._id);
+      expect(response.body.review.comments[0].toString()).to.equal(response_comment._id.toString());
+    });
+  });
 });

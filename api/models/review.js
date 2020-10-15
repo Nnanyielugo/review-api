@@ -58,6 +58,7 @@ ReviewSchema.methods.toObjectJsonFor = function (user) {
     favorites_count: this.favorites_count,
     review_author: this.review_author.toObjectJsonFor(user),
     book: this.book.toObjectJsonFor(),
+    comments: this.comments,
   };
 };
 

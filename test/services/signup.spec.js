@@ -14,6 +14,7 @@ chai.use(chaiHttp);
 const { expect } = chai;
 
 describe('Signup tests', () => {
+  const user_path = '/api/users';
   let mongoServer;
   beforeEach(async () => {
     mongoServer = new MongoMemoryServer();
@@ -30,7 +31,7 @@ describe('Signup tests', () => {
     it('successfully registers regular user', async () => {
       const response = await chai
         .request(app)
-        .post('/api/users/')
+        .post(`${user_path}/`)
         .send({ user: valid_signup_user });
 
       const returnedUser = response.body.user;
@@ -45,7 +46,7 @@ describe('Signup tests', () => {
     it('successfully registers admin user', async () => {
       const response = await chai
         .request(app)
-        .post('/api/users/')
+        .post(`${user_path}/`)
         .send({ user: admin_user });
 
       const returnedUser = response.body.user;
@@ -60,7 +61,7 @@ describe('Signup tests', () => {
     it('successfully registers moderator', async () => {
       const response = await chai
         .request(app)
-        .post('/api/users/')
+        .post(`${user_path}/`)
         .send({ user: moderator_user });
 
       const returnedUser = response.body.user;
@@ -77,7 +78,7 @@ describe('Signup tests', () => {
     it('returns an error when user object isn\'t provided', async () => {
       const response = await chai
         .request(app)
-        .post('/api/users/')
+        .post(`${user_path}/`)
         .send(valid_signup_user);
 
       const responseBody = response.body;
@@ -89,7 +90,7 @@ describe('Signup tests', () => {
     it('fails for incomplete user details', async () => {
       const response = await chai
         .request(app)
-        .post('/api/users/')
+        .post(`${user_path}/`)
         .send({ user: invalid_signup_no_email });
 
       expect(response.body.user).to.be.undefined;

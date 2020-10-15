@@ -17,6 +17,8 @@ chai.use(chaiHttp);
 const { expect } = chai;
 
 describe('Author tests', () => {
+  const user_path = '/api/users';
+  const author_path = '/api/authors';
   let mongoServer;
   let user;
   let alternate_user;
@@ -30,33 +32,33 @@ describe('Author tests', () => {
     // register user
     const user_resp = await chai
       .request(app)
-      .post('/api/users/')
+      .post(`${user_path}/`)
       .send({ user: valid_signup_user });
     user = user_resp.body.user;
 
     const alternate_user_resp = await chai
       .request(app)
-      .post('/api/users/')
+      .post(`${user_path}/`)
       .send({ user: alternate_signup_user });
     alternate_user = alternate_user_resp.body.user;
 
     const superuser_resp = await chai
       .request(app)
-      .post('/api/users/')
+      .post(`${user_path}/`)
       .send({ user: admin_user });
     superuser = superuser_resp.body.user;
 
     // create author
     const author_resp = await chai
       .request(app)
-      .post('/api/authors/')
+      .post(`${author_path}/`)
       .set('authorization', `Bearer ${user.token}`)
       .send({ author: valid_author });
     author = author_resp;
 
     const alternate_author_resp = await chai
       .request(app)
-      .post('/api/authors/')
+      .post(`${author_path}/`)
       .set('authorization', `Bearer ${alternate_user.token}`)
       .send({ author: alternate_author });
     alternate_author_obj = alternate_author_resp.body.author;
@@ -83,7 +85,7 @@ describe('Author tests', () => {
     it('list authors and sorts by family name', async () => {
       const response = await chai
         .request(app)
-        .get('/api/authors/');
+        .get(`${author_path}/`);
 
       expect(response.status).to.equal(200);
       expect(response.body.length).to.equal(2);
@@ -96,7 +98,7 @@ describe('Author tests', () => {
       const author_id = author.body.author._id;
       const response = await chai
         .request(app)
-        .get(`/api/authors/${author_id}`);
+        .get(`${author_path}/${author_id}`);
 
       const responseAuthor = response.body.author;
       expect(response.status).to.equal(200);
@@ -116,7 +118,7 @@ describe('Author tests', () => {
       const author_id = author.body.author._id;
       const response = await chai
         .request(app)
-        .patch(`/api/authors/${author_id}`)
+        .patch(`${author_path}/${author_id}`)
         .set('authorization', `Bearer ${user.token}`)
         .send({ author: modified_author });
 
@@ -138,7 +140,7 @@ describe('Author tests', () => {
       const author_id = author.body.author._id;
       const response = await chai
         .request(app)
-        .patch(`/api/authors/${author_id}`)
+        .patch(`${author_path}/${author_id}`)
         .set('authorization', `Bearer ${superuser.token}`)
         .send({ author: modified_author });
 
@@ -160,7 +162,7 @@ describe('Author tests', () => {
       const author_id = author.body.author._id;
       const response = await chai
         .request(app)
-        .delete(`/api/authors/${author_id}`)
+        .delete(`${author_path}/${author_id}`)
         .set('authorization', `Bearer ${user.token}`);
 
       expect(response.status).to.equal(204);
@@ -170,7 +172,7 @@ describe('Author tests', () => {
       const author_id = author.body.author._id;
       const response = await chai
         .request(app)
-        .delete(`/api/authors/${author_id}`)
+        .delete(`${author_path}/${author_id}`)
         .set('authorization', `Bearer ${superuser.token}`);
 
       expect(response.status).to.equal(204);
@@ -181,7 +183,7 @@ describe('Author tests', () => {
     it('fails when no token is provided for protected routes', async () => {
       const response = await chai
         .request(app)
-        .post('/api/authors/')
+        .post(`${author_path}/`)
         .send({ author: valid_author });
 
       expect(response.unauthorized).to.be.true;
@@ -194,7 +196,7 @@ describe('Author tests', () => {
     it('fails to create for an invalid author object', async () => {
       const response = await chai
         .request(app)
-        .post('/api/authors/')
+        .post(`${author_path}/`)
         .set('authorization', `Bearer ${user.token}`)
         .send({ author: invalid_author });
 
@@ -207,7 +209,7 @@ describe('Author tests', () => {
     it('fails for invalid author id', async () => {
       const response = await chai
         .request(app)
-        .patch('/api/authors/5f48345bdb170e117aa39151')
+        .patch(`${author_path}/5f48345bdb170e117aa39151`)
         .set('authorization', `Bearer ${user.token}`)
         .send({ author: modified_author });
 
@@ -221,7 +223,7 @@ describe('Author tests', () => {
       const author_id = author.body.author._id;
       const response = await chai
         .request(app)
-        .patch(`/api/authors/${author_id}`)
+        .patch(`${author_path}/${author_id}`)
         .set('authorization', `Bearer ${alternate_user.token}`)
         .send({ author: modified_author });
 
@@ -234,7 +236,7 @@ describe('Author tests', () => {
       const author_id = author.body.author._id;
       const response = await chai
         .request(app)
-        .patch(`/api/authors/${author_id}`)
+        .patch(`${author_path}/${author_id}`)
         .set('authorization', `Bearer ${user.token}`)
         .send(modified_author);
 
@@ -246,7 +248,7 @@ describe('Author tests', () => {
     it('fails when author object isn\'t provided for create', async () => {
       const response = await chai
         .request(app)
-        .post('/api/authors/')
+        .post(`${author_path}/`)
         .set('authorization', `Bearer ${user.token}`)
         .send(modified_author);
 
@@ -258,7 +260,7 @@ describe('Author tests', () => {
     it('fails when user didn\'t create author, or is not a superuser', async () => {
       const response = await chai
         .request(app)
-        .delete(`/api/authors/${alternate_author_obj._id}`)
+        .delete(`${author_path}/${alternate_author_obj._id}`)
         .set('authorization', `Bearer ${user.token}`);
 
       expect(response.status).to.equal(401);
@@ -271,7 +273,7 @@ describe('Author tests', () => {
       const author_id = author.body.author._id;
       const response = await chai
         .request(app)
-        .delete(`/api/authors/${author_id}`)
+        .delete(`${author_path}/${author_id}`)
         .set('authorization', `Bearer ${user.token}`);
 
       expect(response.status).to.equal(400);

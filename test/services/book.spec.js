@@ -18,6 +18,9 @@ chai.use(chaiHttp);
 const { expect } = chai;
 
 describe('Book tests', () => {
+  const book_path = '/api/books';
+  const user_path = '/api/users';
+  const author_path = '/api/authors';
   let mongoServer;
   let user;
   let alternate_user;
@@ -32,40 +35,40 @@ describe('Book tests', () => {
     // register user
     const user_resp = await chai
       .request(app)
-      .post('/api/users/')
+      .post(`${user_path}/`)
       .send({ user: valid_signup_user });
     user = user_resp.body.user;
 
     const alternate_user_resp = await chai
       .request(app)
-      .post('/api/users/')
+      .post(`${user_path}/`)
       .send({ user: alternate_signup_user });
     alternate_user = alternate_user_resp.body.user;
 
     const superuser_resp = await chai
       .request(app)
-      .post('/api/users/')
+      .post(`${user_path}/`)
       .send({ user: admin_user });
     superuser = superuser_resp.body.user;
 
     // create author
     const author_resp = await chai
       .request(app)
-      .post('/api/authors/')
+      .post(`${author_path}/`)
       .set('authorization', `Bearer ${user.token}`)
       .send({ author: valid_author });
     author = author_resp.body.author;
 
     const alternate_author_resp = await chai
       .request(app)
-      .post('/api/authors/')
+      .post(`${author_path}/`)
       .set('authorization', `Bearer ${alternate_user.token}`)
       .send({ author: alternate_author });
     alternate_author_obj = alternate_author_resp.body.author;
 
     const valid_book_resp = await chai
       .request(app)
-      .post('/api/books/')
+      .post(`${book_path}/`)
       .set('authorization', `Bearer ${user.token}`)
       .send({
         book: {
@@ -85,7 +88,7 @@ describe('Book tests', () => {
     it('fetches list of books', async () => {
       const response = await chai
         .request(app)
-        .get('/api/books/');
+        .get(`${book_path}/`);
 
       const responseBooks = response.body.books;
       expect(response.status).to.equal(200);
@@ -99,7 +102,7 @@ describe('Book tests', () => {
     it('creates a single book', async () => {
       const response = await chai
         .request(app)
-        .post('/api/books/')
+        .post(`${book_path}/`)
         .set('authorization', `Bearer ${user.token}`)
         .send({
           book: {
@@ -119,7 +122,7 @@ describe('Book tests', () => {
     it('fetches a single book by id', async () => {
       const response = await chai
         .request(app)
-        .get(`/api/books/${book.body.book._id}`);
+        .get(`${book_path}/${book.body.book._id}`);
 
       const responseBook = response.body.book;
       expect(response.status).to.equal(200);
@@ -132,7 +135,7 @@ describe('Book tests', () => {
     it('updates single book', async () => {
       const response = await chai
         .request(app)
-        .patch(`/api/books/${book.body.book._id}`)
+        .patch(`${book_path}/${book.body.book._id}`)
         .set('authorization', `Bearer ${user.token}`)
         .send({
           book: {
@@ -152,7 +155,7 @@ describe('Book tests', () => {
     it('lets admin update book it did not create', async () => {
       const response = await chai
         .request(app)
-        .patch(`/api/books/${book.body.book._id}`)
+        .patch(`${book_path}/${book.body.book._id}`)
         .set('authorization', `Bearer ${superuser.token}`)
         .send({
           book: {
@@ -174,7 +177,7 @@ describe('Book tests', () => {
     it('deletes book', async () => {
       const response = await chai
         .request(app)
-        .delete(`/api/books/${book.body.book._id}`)
+        .delete(`${book_path}/${book.body.book._id}`)
         .set('authorization', `Bearer ${user.token}`);
 
       expect(response.status).to.equal(204);
@@ -183,7 +186,7 @@ describe('Book tests', () => {
     it('lets admin delete a book it did not create', async () => {
       const response = await chai
         .request(app)
-        .delete(`/api/books/${book.body.book._id}`)
+        .delete(`${book_path}/${book.body.book._id}`)
         .set('authorization', `Bearer ${superuser.token}`);
 
       expect(response.status).to.equal(204);
@@ -194,7 +197,7 @@ describe('Book tests', () => {
     it('fails when no token is provided for protected routes', async () => {
       const response = await chai
         .request(app)
-        .post('/api/books/')
+        .post(`${book_path}/`)
         .send({
           book: {
             ...valid_book,
@@ -213,7 +216,7 @@ describe('Book tests', () => {
     it('fails to create invalid book object', async () => {
       const response = await chai
         .request(app)
-        .post('/api/books/')
+        .post(`${book_path}/`)
         .set('authorization', `Bearer ${user.token}`)
         .send({
           book: {
@@ -231,7 +234,7 @@ describe('Book tests', () => {
     it('fails to get detail for invalid book ', async () => {
       const response = await chai
         .request(app)
-        .get('/api/books/5f49249841523c293c3e387c');
+        .get(`${book_path}/5f49249841523c293c3e387c`);
 
       expect(response.status).to.equal(400);
       expect(response.body.book).to.be.undefined;
@@ -242,7 +245,7 @@ describe('Book tests', () => {
     it('fails to update with invalid id', async () => {
       const response = await chai
         .request(app)
-        .patch('/api/books/5f49249841523c293c3e387c')
+        .patch(`${book_path}/5f49249841523c293c3e387c`)
         .set('authorization', `Bearer ${user.token}`)
         .send({ book: modified_book });
 
@@ -255,7 +258,7 @@ describe('Book tests', () => {
     it('refuses non-superuser update book created by another user', async () => {
       const response = await chai
         .request(app)
-        .patch(`/api/books/${book.body.book._id}`)
+        .patch(`${book_path}/${book.body.book._id}`)
         .set('authorization', `Bearer ${alternate_user.token}`)
         .send({ book: modified_book });
 
@@ -268,7 +271,7 @@ describe('Book tests', () => {
     it('errors out when book object is not provided for create', async () => {
       const response = await chai
         .request(app)
-        .post('/api/books/')
+        .post(`${book_path}/`)
         .set('authorization', `Bearer ${user.token}`)
         .send({
           ...valid_book,
@@ -284,7 +287,7 @@ describe('Book tests', () => {
     it('errors out when book object is not provided for edit', async () => {
       const response = await chai
         .request(app)
-        .patch(`/api/books/${book.body.book._id}`)
+        .patch(`${book_path}/${book.body.book._id}`)
         .set('authorization', `Bearer ${user.token}`)
         .send({
           ...modified_book,
@@ -300,7 +303,7 @@ describe('Book tests', () => {
     it('fails to delete with invalid id', async () => {
       const response = await chai
         .request(app)
-        .delete('/api/books/5f49249841523c293c3e387c')
+        .delete(`${book_path}/5f49249841523c293c3e387c`)
         .set('authorization', `Bearer ${user.token}`);
 
       expect(response.status).to.equal(400);
@@ -311,7 +314,7 @@ describe('Book tests', () => {
     it('refuses to let non-superuser delete a book it did not create', async () => {
       const response = await chai
         .request(app)
-        .delete(`/api/books/${book.body.book._id}`)
+        .delete(`${book_path}/${book.body.book._id}`)
         .set('authorization', `Bearer ${alternate_user.token}`);
 
       expect(response.status).to.equal(401);

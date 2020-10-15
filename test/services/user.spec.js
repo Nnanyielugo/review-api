@@ -13,6 +13,7 @@ chai.use(chaiHttp);
 const { expect } = chai;
 
 describe('User tests', () => {
+  const user_path = '/api/users';
   let mongoServer;
   let user;
   let admin;
@@ -23,12 +24,12 @@ describe('User tests', () => {
     // register user
     const user_resp = await chai
       .request(app)
-      .post('/api/users/')
+      .post(`${user_path}/`)
       .send({ user: valid_signup_user });
     // register admin
     const admin_resp = await chai
       .request(app)
-      .post('/api/users/')
+      .post(`${user_path}/`)
       .send({ user: admin_user });
     user = user_resp.body.user;
     admin = admin_resp.body.user;
@@ -43,7 +44,7 @@ describe('User tests', () => {
     it('fetches the auth user object when viewing own profile', async () => {
       const response = await chai
         .request(app)
-        .get(`/api/users/${user._id}`)
+        .get(`${user_path}/${user._id}`)
         .set('authorization', `Bearer ${user.token}`)
         .send();
 
@@ -56,7 +57,7 @@ describe('User tests', () => {
     it('fetches the user object when viewing profile as other user', async () => {
       const response = await chai
         .request(app)
-        .get(`/api/users/${user._id}`)
+        .get(`${user_path}/${user._id}`)
         .send();
 
       const returnedUser = response.body.user;
@@ -71,7 +72,7 @@ describe('User tests', () => {
     it('edits the user', async () => {
       const response = await chai
         .request(app)
-        .patch(`/api/users/${user._id}`)
+        .patch(`${user_path}/${user._id}`)
         .set('authorization', `Bearer ${user.token}`)
         .send({ user: modified_user });
 
@@ -86,7 +87,7 @@ describe('User tests', () => {
     it('suspends the user', async () => {
       const response = await chai
         .request(app)
-        .post(`/api/users/${user._id}/suspend`)
+        .post(`${user_path}/${user._id}/suspend`)
         .set('authorization', `Bearer ${admin.token}`)
         .send({ user: { _id: user._id } });
 
@@ -104,7 +105,7 @@ describe('User tests', () => {
     beforeEach(async () => {
       const _user_resp = await chai
         .request(app)
-        .post('/api/users/')
+        .post(`${user_path}/`)
         .send({ user: alternate_signup_user });
       alternate_user = _user_resp.body.user;
     });
@@ -112,7 +113,7 @@ describe('User tests', () => {
     it('returns an error when user object isn\'t provided', async () => {
       const response = await chai
         .request(app)
-        .patch(`/api/users/${user._id}`)
+        .patch(`${user_path}/${user._id}`)
         .set('authorization', `Bearer ${user.token}`);
 
       const responseBody = response.body;
@@ -124,7 +125,7 @@ describe('User tests', () => {
     it('returns an error when another user tried to edit a user profile', async () => {
       const response = await chai
         .request(app)
-        .patch(`/api/users/${user._id}`)
+        .patch(`${user_path}/${user._id}`)
         .set('authorization', `Bearer ${alternate_user.token}`)
         .send({ user: modified_user });
 
@@ -137,7 +138,7 @@ describe('User tests', () => {
     it('returns an error when a non super user tries to suspend another user', async () => {
       const response = await chai
         .request(app)
-        .post(`/api/users/${user._id}/suspend`)
+        .post(`${user_path}/${user._id}/suspend`)
         .set('authorization', `Bearer ${alternate_user.token}`)
         .send({ user: { _id: user._id } });
 
@@ -151,7 +152,7 @@ describe('User tests', () => {
     it('fails when no token is provided for protected routes', async () => {
       const response = await chai
         .request(app)
-        .post(`/api/users/${user._id}/suspend`)
+        .post(`${user_path}/${user._id}/suspend`)
         .send({ user: { _id: user._id } });
 
       const responseBody = response.body;

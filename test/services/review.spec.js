@@ -13,8 +13,11 @@ const { valid_author, alternate_author } = require('../mocks/author');
 chai.use(chaiHttp);
 const { expect } = chai;
 
-describe.only('Review tests', () => {
-  const review_path = '/api/reviews/';
+describe('Review tests', () => {
+  const review_path = '/api/reviews';
+  const book_path = '/api/books';
+  const user_path = '/api/users';
+  const author_path = '/api/authors';
   let mongoServer;
   let user;
   let alternate_user;
@@ -31,26 +34,26 @@ describe.only('Review tests', () => {
     // create 3 users
     const user_resp = await chai
       .request(app)
-      .post('/api/users/')
+      .post(`${user_path}/`)
       .send({ user: valid_signup_user });
     user = user_resp.body.user;
 
     const alternate_user_resp = await chai
       .request(app)
-      .post('/api/users/')
+      .post(`${user_path}/`)
       .send({ user: alternate_signup_user });
     alternate_user = alternate_user_resp.body.user;
 
     const superuser_resp = await chai
       .request(app)
-      .post('/api/users/')
+      .post(`${user_path}/`)
       .send({ user: admin_user });
     superuser = superuser_resp.body.user;
 
     // create author
     const author_resp = await chai
       .request(app)
-      .post('/api/authors/')
+      .post(`${author_path}/`)
       .set('authorization', `Bearer ${user.token}`)
       .send({ author: valid_author });
     author = author_resp.body.author;
@@ -58,7 +61,7 @@ describe.only('Review tests', () => {
     // create book
     const valid_book_resp = await chai
       .request(app)
-      .post('/api/books/')
+      .post(`${book_path}/`)
       .set('authorization', `Bearer ${user.token}`)
       .send({
         book: {
@@ -71,7 +74,7 @@ describe.only('Review tests', () => {
     // create review
     const valid_review_resp = await chai
       .request(app)
-      .post(`${review_path}`)
+      .post(`${review_path}/`)
       .set('authorization', `Bearer ${user.token}`)
       .send({
         review: {
@@ -91,7 +94,7 @@ describe.only('Review tests', () => {
     it('fetches list of reviews', async () => {
       const response = await chai
         .request(app)
-        .get(`${review_path}`);
+        .get(`${review_path}/`);
 
       expect(response.body.reviews).to.be.an('array');
       expect(response.body.reviewsCount).to.equal(1);
@@ -119,7 +122,7 @@ describe.only('Review tests', () => {
     it('edits a review', async () => {
       const response = await chai
         .request(app)
-        .patch(`${review_path}${review.body.review._id}`)
+        .patch(`${review_path}/${review.body.review._id}`)
         .set('authorization', `Bearer ${user.token}`)
         .send({
           review: {
@@ -136,7 +139,7 @@ describe.only('Review tests', () => {
     it('deletes a review', async () => {
       const response = await chai
         .request(app)
-        .delete(`${review_path}${review.body.review._id}`)
+        .delete(`${review_path}/${review.body.review._id}`)
         .set('authorization', `Bearer ${user.token}`);
       const list = await chai
         .request(app)
@@ -149,7 +152,7 @@ describe.only('Review tests', () => {
     it('lets admin user delete a review it did not create', async () => {
       const response = await chai
         .request(app)
-        .delete(`${review_path}${review.body.review._id}`)
+        .delete(`${review_path}/${review.body.review._id}`)
         .set('authorization', `Bearer ${superuser.token}`);
       const list = await chai
         .request(app)
@@ -164,7 +167,7 @@ describe.only('Review tests', () => {
     it('fails when no token is provided for protected routes', async () => {
       const response = await chai
         .request(app)
-        .post(`${review_path}`)
+        .post(`${review_path}/`)
         .send({
           review: {
             ...valid_review,
@@ -179,7 +182,7 @@ describe.only('Review tests', () => {
     it('fails to create review with invalid review object', async () => {
       const response = await chai
         .request(app)
-        .post(`${review_path}`)
+        .post(`${review_path}/`)
         .set('authorization', `Bearer ${user.token}`)
         .send({
           review: {
@@ -195,7 +198,7 @@ describe.only('Review tests', () => {
     it('fails to create with an invalid bookid', async () => {
       const response = await chai
         .request(app)
-        .post(`${review_path}`)
+        .post(`${review_path}/`)
         .set('authorization', `Bearer ${user.token}`)
         .send({
           review: {
@@ -217,7 +220,7 @@ describe.only('Review tests', () => {
 
       const response = await chai
         .request(app)
-        .post(`${review_path}`)
+        .post(`${review_path}/`)
         .set('authorization', `Bearer ${user.token}`)
         .send({
           review: {
@@ -234,7 +237,7 @@ describe.only('Review tests', () => {
     it('fails to update witout a review object', async () => {
       const response = await chai
         .request(app)
-        .patch(`${review_path}${review.body.review._id}`)
+        .patch(`${review_path}/${review.body.review._id}`)
         .set('authorization', `Bearer ${user.token}`)
         .send({});
       expect(response.status).to.equal(400);
@@ -245,7 +248,7 @@ describe.only('Review tests', () => {
     it('fails to update witout an invalid review id', async () => {
       const response = await chai
         .request(app)
-        .patch(`${review_path}5eb647261876da18d219125b`)
+        .patch(`${review_path}/5eb647261876da18d219125b`)
         .set('authorization', `Bearer ${user.token}`)
         .send({
           review: {
@@ -266,7 +269,7 @@ describe.only('Review tests', () => {
 
       const response = await chai
         .request(app)
-        .patch(`${review_path}${review.body.review._id}`)
+        .patch(`${review_path}/${review.body.review._id}`)
         .set('authorization', `Bearer ${user.token}`)
         .send({
           review: {
@@ -282,7 +285,7 @@ describe.only('Review tests', () => {
     it('fails when a user attempts to update a review it did not create', async () => {
       const response = await chai
         .request(app)
-        .patch(`${review_path}${review.body.review._id}`)
+        .patch(`${review_path}/${review.body.review._id}`)
         .set('authorization', `Bearer ${alternate_user.token}`)
         .send({
           review: {
@@ -296,7 +299,7 @@ describe.only('Review tests', () => {
     it('fails to delete review with invalid id', async () => {
       const response = await chai
         .request(app)
-        .delete(`${review_path}5f49249841523c293c3e387c`)
+        .delete(`${review_path}/5f49249841523c293c3e387c`)
         .set('authorization', `Bearer ${user.token}`);
 
       expect(response.status).to.equal(404);
@@ -307,7 +310,7 @@ describe.only('Review tests', () => {
     it('fails to delete when another user attempts do delete a review it did not create', async () => {
       const response = await chai
         .request(app)
-        .delete(`${review_path}${review.body.review._id}`)
+        .delete(`${review_path}/${review.body.review._id}`)
         .set('authorization', `Bearer ${alternate_user.token}`);
       const list = await chai
         .request(app)

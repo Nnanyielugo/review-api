@@ -40,7 +40,7 @@ ReviewSchema.plugin(uniqueValidator, { message: '{Path} is already taken.' });
 ReviewSchema.methods.updateFavoriteCount = function () {
   const review = this;
   return User
-    .count({ favorites: { $in: [review.id] } })
+    .countDocuments({ favorites: { $in: [review.id] } })
     .then((count) => {
       review.favorites_count = count;
       return review.save();

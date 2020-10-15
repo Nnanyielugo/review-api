@@ -13,11 +13,12 @@ const { valid_author, alternate_author } = require('../mocks/author');
 chai.use(chaiHttp);
 const { expect } = chai;
 
-describe.only('Review tests', () => {
+describe('Review tests', () => {
   const review_path = '/api/reviews';
   const book_path = '/api/books';
   const user_path = '/api/users';
   const author_path = '/api/authors';
+  const invalid_token = 'eyJhbGciOiJIUzI1NiIsInR5cAA6IkpXVCJ9.eyJpZCI6IjVmODg1Mzc0MDVjMDU2ODZiYzhmODU0YSIsInVzZXJuYW1lIjoiSGlsZGVnYXJkNTAiLCJleHAiOjE2MDc5NTM3ODAsImlhdCI6MTYwMjc2OTc4MH0.d1xhybGQI3LpZNGmEZff4wPBIyA-eEKQBdqeBSslkaE';
   let mongoServer;
   let user;
   let alternate_user;
@@ -165,6 +166,50 @@ describe.only('Review tests', () => {
 
       expect(response.status).to.equal(204);
       expect(list.body.reviewsCount).to.equal(0);
+    });
+
+    it('favorites a review', async () => {
+      await chai
+        .request(app)
+        .post(`${review_path}/${review.body.review._id}/favorite`)
+        .set('authorization', `Bearer ${user.token}`)
+        .send();
+
+      const response = await chai
+        .request(app)
+        .get(`${review_path}/${review.body.review._id}`)
+        .set('authorization', `Bearer ${user.token}`);
+      const alt_response = await chai
+        .request(app)
+        .get(`${review_path}/${review.body.review._id}`)
+        .set('authorization', `Bearer ${alternate_user.token}`);
+
+      expect(response.body.review.favorited).to.be.true;
+      expect(response.body.review.favorites_count).to.equal(1);
+      expect(alt_response.body.review.favorited).to.be.false;
+      expect(alt_response.body.review.favorites_count).to.equal(1);
+    });
+
+    it('unfavorites a review', async () => {
+      await chai
+        .request(app)
+        .post(`${review_path}/${review.body.review._id}/favorite`)
+        .set('authorization', `Bearer ${user.token}`)
+        .send();
+
+      await chai
+        .request(app)
+        .post(`${review_path}/${review.body.review._id}/unfavorite`)
+        .set('authorization', `Bearer ${user.token}`)
+        .send();
+
+      const response = await chai
+        .request(app)
+        .get(`${review_path}/${review.body.review._id}`)
+        .set('authorization', `Bearer ${user.token}`);
+
+      expect(response.body.review.favorited).to.be.false;
+      expect(response.body.review.favorites_count).to.equal(0);
     });
   });
 

@@ -236,7 +236,7 @@ describe('Book tests', () => {
       expect(response.status).to.equal(400);
       expect(response.body.book).to.be.undefined;
       expect(response.body.error).to.be.an('object');
-      expect(response.body.error.message).to.equal('Book does not exist');
+      expect(response.body.error.message).to.equal('The book you are looking for does not exist.');
     });
 
     it('fails to update with invalid id', async () => {
@@ -249,7 +249,7 @@ describe('Book tests', () => {
       expect(response.status).to.equal(400);
       expect(response.body.book).to.be.undefined;
       expect(response.body.error).to.be.an('object');
-      expect(response.body.error.message).to.equal('Book does not exist');
+      expect(response.body.error.message).to.equal('The book you are looking for does not exist.');
     });
 
     it('refuses non-superuser update book created by another user', async () => {
@@ -305,7 +305,7 @@ describe('Book tests', () => {
 
       expect(response.status).to.equal(400);
       expect(response.body.error).to.be.an('object');
-      expect(response.body.error.message).to.equal('Book does not exist');
+      expect(response.body.error.message).to.equal('The book you are looking for does not exist.');
     });
 
     it('refuses to let non-superuser delete a book it did not create', async () => {

@@ -14,7 +14,7 @@ exports.preloadBook = async function (req, res, next, id) {
     if (!book) {
       return res.status(400).json({
         error: {
-          message: 'Book does not exist',
+          message: 'The book you are looking for does not exist.',
         },
       });
     }

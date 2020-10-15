@@ -219,42 +219,42 @@ exports.delete = async function (req, res, next) {
   }
 };
 
-exports.favorite = function (req, res, next) {
-  const review_id = req.review._id;
+exports.favorite = async function (req, res, next) {
+  try {
+    const review_id = req.review._id;
+    const user = await User.findById(req.payload.id);
+    if (!user) {
+      return res.status(400).json({
+        error: {
+          message: 'The user you requested does not exist!',
+        },
+      });
+    }
 
-  User
-    .findById(req.payload.id)
-    .then((user) => {
-      if (!user) {
-        return res.sendStatus(401);
-      }
-
-      return user
-        .favorite(review_id)
-        .then(() => req.review
-          .updateFavoriteCount()
-          .then((review) => res.json({ review: review.toObjectJsonFor(user) })))
-        .catch(next);
-    })
-    .catch(next);
+    await user.favorite(review_id);
+    await req.review.updateFavoriteCount();
+    return res.json({ review: req.review.toObjectJsonFor(user) });
+  } catch (err) {
+    next(err);
+  }
 };
 
-exports.unfavorite = function (req, res, next) {
-  const review_id = req.review._id;
+exports.unfavorite = async function (req, res, next) {
+  try {
+    const review_id = req.review._id;
+    const user = await User.findById(req.payload.id);
+    if (!user) {
+      return res.status(400).json({
+        error: {
+          message: 'The user you requested does not exist!',
+        },
+      });
+    }
 
-  User
-    .findById(req.payload.id)
-    .then((user) => {
-      if (!user) {
-        return res.sendStatus(401);
-      }
-
-      return user
-        .unfavorite(review_id)
-        .then(() => req.review
-          .updateFavoriteCount()
-          .then((review) => res.json({ review: review.toObjectJsonFor(user) })))
-        .catch(next);
-    })
-    .catch(next);
+    await user.unfavorite(review_id);
+    await req.review.updateFavoriteCount();
+    return res.json({ review: req.review.toObjectJsonFor(user) });
+  } catch (err) {
+    next(err);
+  }
 };

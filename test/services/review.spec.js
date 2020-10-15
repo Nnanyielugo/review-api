@@ -13,7 +13,7 @@ const { valid_author, alternate_author } = require('../mocks/author');
 chai.use(chaiHttp);
 const { expect } = chai;
 
-describe('Review tests', () => {
+describe.only('Review tests', () => {
   const review_path = '/api/reviews';
   const book_path = '/api/books';
   const user_path = '/api/users';
@@ -107,10 +107,15 @@ describe('Review tests', () => {
       expect(review.body.review.content).to.equal(valid_review.content);
     });
 
-    it.skip('fetches a single review', async () => {
-      // const response = await chai
-      //   .request(app)
-      //   .get()
+    it('fetches a single review', async () => {
+      const response = await chai
+        .request(app)
+        .get(`${review_path}/${review.body.review._id}`)
+        .set('authorization', `Bearer ${user.token}`);
+
+      expect(response.body.error).to.be.undefined;
+      expect(response.body.review._id).to.equal(review.body.review._id);
+      expect(response.body.review.content).to.equal(review.body.review.content);
     });
 
     it('adds review id to book.reviews of the book being reviewed', () => {
@@ -232,6 +237,17 @@ describe('Review tests', () => {
       expect(response.status).to.equal(400);
       expect(response.body.error).to.be.an('object');
       expect(response.body.error.message).to.equal('Suspended users cannot make reviews!');
+    });
+
+    it('fails to fetch a review with an invalid id', async () => {
+      const response = await chai
+        .request(app)
+        .get(`${review_path}/5eb647261876da18d219125b`)
+        .set('authorization', `Bearer ${user.token}`);
+
+      expect(response.status).to.equal(404);
+      expect(response.body.error).to.be.an('object');
+      expect(response.body.error.message).to.equal('The review you are looking for does not exist.');
     });
 
     it('fails to update witout a review object', async () => {

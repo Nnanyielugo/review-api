@@ -5,10 +5,14 @@ const mongoose = require('mongoose');
 const connect_mongoose = require('../../api/utils/mongoose_utils');
 const app = require('../../app');
 
-const { valid_review, alternate_review, invalid_review } = require('../mocks/review');
-const { valid_book, alternate_book } = require('../mocks/book');
-const { valid_signup_user, admin_user, alternate_signup_user } = require('../mocks/user');
-const { valid_author, alternate_author } = require('../mocks/author');
+const {
+  valid_review, alternate_review, invalid_review,
+} = require('../mocks/review');
+const {
+  valid_signup_user, admin_user, alternate_signup_user,
+} = require('../mocks/user');
+const { valid_book } = require('../mocks/book');
+const { valid_author } = require('../mocks/author');
 
 chai.use(chaiHttp);
 const { expect } = chai;
@@ -18,7 +22,6 @@ describe('Review tests', () => {
   const book_path = '/api/books';
   const user_path = '/api/users';
   const author_path = '/api/authors';
-  const invalid_token = 'eyJhbGciOiJIUzI1NiIsInR5cAA6IkpXVCJ9.eyJpZCI6IjVmODg1Mzc0MDVjMDU2ODZiYzhmODU0YSIsInVzZXJuYW1lIjoiSGlsZGVnYXJkNTAiLCJleHAiOjE2MDc5NTM3ODAsImlhdCI6MTYwMjc2OTc4MH0.d1xhybGQI3LpZNGmEZff4wPBIyA-eEKQBdqeBSslkaE';
   let mongoServer;
   let user;
   let alternate_user;

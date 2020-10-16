@@ -2,29 +2,31 @@ const { model } = require('mongoose');
 
 const Comment = model('Comment');
 const User = model('User');
+const Review = model('Review');
 
-exports.preloadComment = function (req, res, next, id) {
-  Comment
-    .findById(id)
-    .then((comment) => {
-      if (!comment) {
-        return res.status(404).json({
-          error: {
-            message: 'Comment does not exist!',
-          },
-        });
-      }
+exports.preloadComment = async function (req, res, next, id) {
+  try {
+    const comment = await Comment.findById(id);
+    if (!comment) {
+      return res.status(400).json({
+        error: {
+          message: 'Comment does not exist!',
+        },
+      });
+    }
 
-      req.comment = comment;
-      return next();
-    })
-    .catch(next);
+    req.comment = comment;
+    return next();
+  } catch (err) {
+    next(err);
+  }
 };
 
-exports.get = function (req, res, next) {
-  Promise
-    .resolve(req.payload ? User.findById(req.payload.id) : null)
-    .then(((user) => req.review
+exports.get = async function (req, res, next) {
+  try {
+    const user = req.payload ? await User.findById(req.payload.id) : null;
+    const review = await Review
+      .findById(req.review._id)
       .populate({
         path: 'comments',
         populate: {
@@ -35,13 +37,12 @@ exports.get = function (req, res, next) {
             createdAt: 'desc',
           },
         },
-      })
-      .execPopulate()
-      .then((review) => res.json({
-        // comments: req.review.comments.map(function)
-        comments: review.comments.map((comment) => comment.toObjectJsonFor(user)),
-      }))))
-    .catch(next);
+      });
+    const comments = review.comments.map((comment) => comment.toObjectJsonFor(user));
+    return res.json({ comments });
+  } catch (err) {
+    next(err);
+  }
 };
 
 exports.create = async function (req, res, next) {

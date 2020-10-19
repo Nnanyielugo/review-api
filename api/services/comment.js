@@ -11,9 +11,9 @@ exports.preloadComment = async function (req, res, next, id) {
       .populate('comment_author');
 
     if (!comment) {
-      return res.status(400).json({
+      return res.status(404).json({
         error: {
-          message: 'Comment does not exist!',
+          message: 'The comment you are looking for does not exist.',
         },
       });
     }
@@ -50,6 +50,13 @@ exports.get = async function (req, res, next) {
 
 exports.create = async function (req, res, next) {
   try {
+    if (!req.body.comment) {
+      return res.status(400).json({
+        error: {
+          message: 'You need to send the comment object with this request.',
+        },
+      });
+    }
     const user = await User.findById(req.payload.id);
     if (!user) {
       return res.sendStatus(401);
@@ -82,6 +89,13 @@ exports.create = async function (req, res, next) {
 
 exports.update = async function (req, res, next) {
   try {
+    if (!req.body.comment) {
+      return res.status(400).json({
+        error: {
+          message: 'You need to send the comment object with this request.',
+        },
+      });
+    }
     const user_id = req.payload.id;
     const user = await User.findById(user_id);
 

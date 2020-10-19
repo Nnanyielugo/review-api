@@ -6,7 +6,10 @@ const Review = model('Review');
 
 exports.preloadComment = async function (req, res, next, id) {
   try {
-    const comment = await Comment.findById(id);
+    const comment = await Comment
+      .findById(id)
+      .populate('comment_author');
+
     if (!comment) {
       return res.status(400).json({
         error: {
@@ -77,65 +80,38 @@ exports.create = async function (req, res, next) {
   }
 };
 
-exports.update = function (req, res, next) {
-  User
-    .findById(req.payload.id)
-    .then((user) => {
-      if (!user) {
-        return req.sendStatus(401);
-      }
+exports.update = async function (req, res, next) {
+  try {
+    const user_id = req.payload.id;
+    const user = await User.findById(user_id);
 
-      const comment_author_id = req.comment.comment_author._id;
-      if (comment_author_id.toString() !== req.payload.id.toString()) {
-        return res.sendStatus(403);
-      }
+    if (!user) {
+      return req.sendStatus(401);
+    }
 
-      if (user.suspended || user.suspension_timeline > Date.now()) {
-        return res.status(400).json({
-          error: {
-            message: 'Suspended users cannot edit comments!',
-          },
-        });
-      }
+    const comment_author_id = req.comment.comment_author._id;
+    if (comment_author_id.toString() !== user_id.toString()) {
+      return res.sendStatus(403);
+    }
 
-      Comment
-        .findById(req.comment._id)
-        .then((comment) => {
-          if (!comment) {
-            return res.status(404).json({
-              error: {
-                message: 'Comment does not exist!',
-              },
-            });
-          }
+    if (user.suspended || user.suspension_timeline > Date.now()) {
+      return res.status(400).json({
+        error: {
+          message: 'Suspended users cannot edit comments!',
+        },
+      });
+    }
 
-          return comment
-            .update(req.body.comment)
-            .then((_comment) => {
-              // TODO: explore better ways to remove comment from review
-              // req.review.comments.update(req.comment._id)
-              const comment_index = req.review.comments.findIndex((revComment) => revComment._id === _comment._id);
-              if (comment_index < 0) {
-                return res.status(404).json({
-                  error: {
-                    message: 'Comment does not exist!',
-                  },
-                });
-              }
-              req.review.comments.splice(comment_index, 1, _comment);
-              return req.review
-                .save()
-                .then((_review) => {
-                  res.json({
-                    comment: comment.toObjectJsonFor(user),
-                  });
-                });
-            })
-            .catch(next);
-        })
-        .catch(next);
-    })
-    .catch(next);
+    if (typeof req.body.comment.content !== 'undefined') {
+      req.comment.content = req.body.comment.content;
+    }
+
+    await req.comment.updateOne();
+    const doc = req.comment.toObjectJsonFor(user);
+    return res.json({ comment: doc });
+  } catch (err) {
+    next(err);
+  }
 };
 
 exports.delete = function (req, res, next) {

@@ -165,4 +165,158 @@ describe.only('Comment tests', () => {
       expect(review_response.body.review.comments.length).to.equal(0);
     });
   });
+
+  describe('failing tests', () => {
+    it('fails when no token is provided for protected routes', async () => {
+      const response = await chai
+        .request(app)
+        .post(`${review_path}/${review._id}/comments`)
+        .send({
+          review: {
+            ...valid_comment,
+          },
+        });
+      expect(response.unauthorized).to.be.true;
+      expect(response.body.error).to.exist;
+      expect(response.body.error.message).to.equal('No authorization token was found');
+    });
+
+    it('fails to create without a comment object', async () => {
+      const response = await chai
+        .request(app)
+        .post(`${review_path}/${review._id}/comments`)
+        .set('authorization', `Bearer ${user.token}`)
+        .send({});
+      expect(response.status).to.equal(400);
+      expect(response.body.error).to.be.an('object');
+      expect(response.body.error.message).to.equal('You need to send the comment object with this request.');
+    });
+
+    it('fails to create comment with invalid comment object', async () => {
+      const response = await chai
+        .request(app)
+        .post(`${review_path}/${review._id}/comments`)
+        .set('authorization', `Bearer ${user.token}`)
+        .send({
+          comment: {
+            ...invalid_comment,
+          },
+        });
+      expect(response.status).to.equal(500);
+      expect(response.body.error).to.be.an('object');
+      expect(response.body.error.message).to.equal('Comment validation failed: content: Path `content` is required.');
+    });
+
+    it('fails when suspended users attempt to create comments', async () => {
+      await chai
+        .request(app)
+        .post(`/api/users/${user._id}/suspend`)
+        .set('authorization', `Bearer ${superuser.token}`)
+        .send();
+
+      const response = await chai
+        .request(app)
+        .post(`${review_path}/${review._id}/comments`)
+        .set('authorization', `Bearer ${user.token}`)
+        .send({
+          comment: {
+            ...alternate_comment,
+          },
+        });
+      expect(response.status).to.equal(403);
+      expect(response.body.error).to.be.an('object');
+      expect(response.body.error.message).to.equal('Suspended users cannot leave comments!');
+    });
+
+    it('fails when suspended users attempt to update comments', async () => {
+      const response_comment = comment.body.comment;
+      await chai
+        .request(app)
+        .post(`/api/users/${user._id}/suspend`)
+        .set('authorization', `Bearer ${superuser.token}`)
+        .send();
+
+      const response = await chai
+        .request(app)
+        .patch(`${review_path}/${review._id}/comments/${response_comment._id}`)
+        .set('authorization', `Bearer ${user.token}`)
+        .send({
+          comment: {
+            ...alternate_comment,
+          },
+        });
+      expect(response.status).to.equal(400);
+      expect(response.body.error).to.be.an('object');
+      expect(response.body.error.message).to.equal('Suspended users cannot edit comments!');
+    });
+
+    it('fails to update a comment with an invalid id', async () => {
+      const response = await chai
+        .request(app)
+        .patch(`${review_path}/${review._id}/comments/5eb647261876da18d219125b`)
+        .set('authorization', `Bearer ${user.token}`)
+        .send({
+          comment: {
+            ...alternate_comment,
+          },
+        });
+
+      expect(response.status).to.equal(404);
+      expect(response.body.error).to.be.an('object');
+      expect(response.body.error.message).to.equal('The comment you are looking for does not exist.');
+    });
+
+    it('fails to update witout a comment object', async () => {
+      const response_comment = comment.body.comment;
+      const response = await chai
+        .request(app)
+        .patch(`${review_path}/${review._id}/comments/${response_comment._id}`)
+        .set('authorization', `Bearer ${user.token}`)
+        .send({});
+      expect(response.status).to.equal(400);
+      expect(response.body.error).to.be.an('object');
+      expect(response.body.error.message).to.equal('You need to send the comment object with this request.');
+    });
+
+    it('fails when a user attempts to update a comment it did not create', async () => {
+      const response_comment = comment.body.comment;
+      const response = await chai
+        .request(app)
+        .patch(`${review_path}/${review._id}/comments/${response_comment._id}`)
+        .set('authorization', `Bearer ${alternate_user.token}`)
+        .send({
+          comment: {
+            ...alternate_comment,
+          },
+        });
+      expect(response.status).to.equal(403);
+    });
+
+    it('fails to delete review with invalid id', async () => {
+      const response = await chai
+        .request(app)
+        .delete(`${review_path}/${review._id}/comments/5f49249841523c293c3e387c`)
+        .set('authorization', `Bearer ${user.token}`);
+
+      expect(response.status).to.equal(404);
+      expect(response.body.error).to.be.an('object');
+      expect(response.body.error.message).to.equal('The comment you are looking for does not exist.');
+    });
+
+    it('fails to delete when another user attempts do delete a comment it did not create', async () => {
+      const response_comment = comment.body.comment;
+      const response = await chai
+        .request(app)
+        .delete(`${review_path}/${review._id}/comments/${response_comment._id}`)
+        .set('authorization', `Bearer ${alternate_user.token}`);
+      const review_response = await chai
+        .request(app)
+        .get(`${review_path}/${review._id}`)
+        .set('authorization', `Bearer ${user.token}`);
+
+      expect(response.status).to.equal(403);
+      expect(response.body.error.message).to.equal('You must either be comment creator or an admin to delete this comment');
+      expect(review_response.body.review.comments.length).to.equal(1);
+    });
+  });
 });

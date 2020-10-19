@@ -148,5 +148,21 @@ describe.only('Comment tests', () => {
       expect(responseComment.content).to.equal(alternate_comment.content);
       expect(responseComment.review).to.equal(commentBody.review);
     });
+
+    it('deletes comment', async () => {
+      const response_comment = comment.body.comment;
+      const response = await chai
+        .request(app)
+        .delete(`${review_path}/${review._id}/comments/${response_comment._id}`)
+        .set('authorization', `Bearer ${user.token}`);
+
+      const review_response = await chai
+        .request(app)
+        .get(`${review_path}/${review._id}`)
+        .set('authorization', `Bearer ${user.token}`);
+
+      expect(response.status).to.equal(204);
+      expect(review_response.body.review.comments.length).to.equal(0);
+    });
   });
 });

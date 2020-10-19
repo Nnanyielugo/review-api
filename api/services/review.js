@@ -72,7 +72,7 @@ exports.list = async function (req, res, next) {
         .populate('book', 'author genre summary')
         .exec(),
       Review
-        .count(query)
+        .countDocuments(query)
         .exec(),
       req.payload
         ? User.findById(req.payload.id)
@@ -204,7 +204,7 @@ exports.delete = async function (req, res, next) {
     }
 
     if ((req.review.review_author._id.toString() !== user_id.toString())
-    && user.user_type !== 'admin') {
+      && user.user_type !== 'admin') {
       return res.status(403).json({
         error: {
           message: 'You must either be review creator or an admin to delete this review',

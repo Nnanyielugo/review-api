@@ -114,22 +114,31 @@ exports.update = async function (req, res, next) {
   }
 };
 
-exports.delete = function (req, res, next) {
-  const comment_author_id = req.comment.comment_author._id;
-  if (comment_author_id.toString() !== req.payload.toString()) {
-    res.sendStatus(401);
-  }
+exports.delete = async function (req, res, next) {
+  try {
+    const user_id = req.payload.id;
+    const user = await User.findById(user_id);
+    const comment_author_id = req.comment.comment_author._id;
+    if (
+      (comment_author_id.toString() !== user_id.toString())
+        && user.user_type !== 'admin'
+    ) {
+      return res.status(403).json({
+        error: {
+          message: 'You must either be comment creator or an admin to delete this comment',
+        },
+      });
+    }
 
-  req.review.comments.remove(req.comment._id);
-  return req.review
-    .save()
-    .then(
-      Comment
-        .findByIdAndRemove(req.comment._id)
-        .exec()
-        .catch(next),
-    )
-    .then(() => res.sendStatus(204));
+    await Promise.all([
+      req.review.comments.remove(req.comment._id),
+      Comment.findByIdAndRemove(req.comment._id),
+    ]);
+    await req.review.save();
+    return res.sendStatus(204);
+  } catch (err) {
+    next(err);
+  }
 };
 
 exports.favorite = function (req, res, next) {

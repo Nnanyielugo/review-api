@@ -18,7 +18,7 @@ const { valid_author } = require('../mocks/author');
 chai.use(chaiHttp);
 const { expect } = chai;
 
-describe('Comment tests', () => {
+describe.only('Comment tests', () => {
   const review_path = '/api/reviews';
   const book_path = '/api/books';
   const user_path = '/api/users';
@@ -128,6 +128,25 @@ describe('Comment tests', () => {
       expect(response.body.comments).to.be.an('array');
       expect(response.body.comments.length).to.equal(1);
       expect(response.body.comments[0]._id).to.equal(comment.body.comment._id);
+    });
+
+    it('updates comment', async () => {
+      const response_comment = comment.body.comment;
+      const response = await chai
+        .request(app)
+        .patch(`${review_path}/${review._id}/comments/${response_comment._id}`)
+        .set('authorization', `Bearer ${user.token}`)
+        .send({
+          comment: alternate_comment,
+        });
+
+      const responseComment = response.body.comment;
+      const commentBody = comment.body.comment;
+
+      expect(response.body.error).to.be.undefined;
+      expect(responseComment._id.toString()).to.equal(commentBody._id.toString());
+      expect(responseComment.content).to.equal(alternate_comment.content);
+      expect(responseComment.review).to.equal(commentBody.review);
     });
   });
 });

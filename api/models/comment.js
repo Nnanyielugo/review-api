@@ -3,7 +3,10 @@ const mongoose = require('mongoose');
 const User = mongoose.model('User');
 
 const CommentSchema = new mongoose.Schema({
-  content: String,
+  content: {
+    type: String,
+    required: true,
+  },
   comment_author: {
     type: mongoose.Schema.Types.ObjectId,
     ref: 'User',
@@ -21,7 +24,7 @@ const CommentSchema = new mongoose.Schema({
 CommentSchema.methods.updateFavoriteCount = function () {
   const comment = this;
   return User
-    .count({ favorites: { $in: [comment.id] } })
+    .countDocuments({ favorites: { $in: [comment.id] } })
     .then((count) => {
       comment.favorites_count = count;
       return comment.save();

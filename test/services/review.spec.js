@@ -381,7 +381,7 @@ describe('Review tests', () => {
         .get(`${review_path}`);
 
       expect(response.status).to.equal(403);
-      expect(response.body.error.message).to.equal('You must either be book creator or an admin to delete this review');
+      expect(response.body.error.message).to.equal('You must either be review creator or an admin to delete this review');
       expect(list.body.reviewsCount).to.equal(1);
     });
   });

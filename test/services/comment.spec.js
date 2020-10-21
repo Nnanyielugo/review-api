@@ -18,7 +18,7 @@ const { valid_author } = require('../mocks/author');
 chai.use(chaiHttp);
 const { expect } = chai;
 
-describe.only('Comment tests', () => {
+describe('Comment tests', () => {
   const review_path = '/api/reviews';
   const book_path = '/api/books';
   const user_path = '/api/users';
@@ -163,6 +163,67 @@ describe.only('Comment tests', () => {
 
       expect(response.status).to.equal(204);
       expect(review_response.body.review.comments.length).to.equal(0);
+    });
+
+    it('lets admin delete another user\'s comment', async () => {
+      const response_comment = comment.body.comment;
+      const response = await chai
+        .request(app)
+        .delete(`${review_path}/${review._id}/comments/${response_comment._id}`)
+        .set('authorization', `Bearer ${superuser.token}`);
+
+      const review_response = await chai
+        .request(app)
+        .get(`${review_path}/${review._id}`)
+        .set('authorization', `Bearer ${user.token}`);
+
+      expect(response.status).to.equal(204);
+      expect(review_response.body.review.comments.length).to.equal(0);
+    });
+
+    it('favorites a comment', async () => {
+      const response_comment = comment.body.comment;
+      await chai
+        .request(app)
+        .post(`${review_path}/${review._id}/comments/${response_comment._id}/favorite`)
+        .set('authorization', `Bearer ${user.token}`)
+        .send();
+
+      const response = await chai
+        .request(app)
+        .get(`${review_path}/${review._id}/comments`)
+        .set('authorization', `Bearer ${user.token}`);
+      const alt_response = await chai
+        .request(app)
+        .get(`${review_path}/${review._id}/comments`)
+        .set('authorization', `Bearer ${alternate_user.token}`);
+
+      expect(response.body.comments[0].favorited).to.be.true;
+      expect(response.body.comments[0].favorites_count).to.equal(1);
+      expect(alt_response.body.comments[0].favorited).to.be.false;
+      expect(alt_response.body.comments[0].favorites_count).to.equal(1);
+    });
+
+    it('unfavorites a comment', async () => {
+      const response_comment = comment.body.comment;
+      await chai
+        .request(app)
+        .post(`${review_path}/${review._id}/comments/${response_comment._id}/favorite`)
+        .set('authorization', `Bearer ${user.token}`)
+        .send();
+      await chai
+        .request(app)
+        .post(`${review_path}/${review._id}/comments/${response_comment._id}/unfavorite`)
+        .set('authorization', `Bearer ${user.token}`)
+        .send();
+
+      const response = await chai
+        .request(app)
+        .get(`${review_path}/${review._id}/comments`)
+        .set('authorization', `Bearer ${user.token}`);
+
+      expect(response.body.comments[0].favorited).to.be.false;
+      expect(response.body.comments[0].favorites_count).to.equal(0);
     });
   });
 

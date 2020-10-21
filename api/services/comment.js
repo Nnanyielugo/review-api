@@ -155,46 +155,36 @@ exports.delete = async function (req, res, next) {
   }
 };
 
-exports.favorite = function (req, res, next) {
-  const comment_id = req.comment._id;
-
-  User
-    .findById(req.payload.id)
-    .then((user) => {
-      if (!user) {
-        return res.sendStatus(401);
-      }
-
-      return user
-        .favorite(comment_id)
-        .then(() => req.comment
-          .updateFavoriteCount()
-          .then((comment) => res.json({
-            comment: comment.toObjectJsonFor(user),
-          })))
-        .catch(next);
-    })
-    .catch(next);
+exports.favorite = async function (req, res, next) {
+  try {
+    const comment_id = req.comment._id;
+    const user = await User.findById(req.payload.id);
+    if (!user) {
+      return res.sendStatus(401);
+    }
+    await user.favorite(comment_id);
+    const comment = await req.comment.updateFavoriteCount();
+    return res.json({
+      comment: comment.toObjectJsonFor(user),
+    });
+  } catch (err) {
+    next(err);
+  }
 };
 
-exports.unfavorite = function (req, res, next) {
-  const comment_id = req.comment._id;
-
-  User
-    .findById(req.payload.id)
-    .then((user) => {
-      if (!user) {
-        return res.sendStatus(401);
-      }
-
-      return user
-        .unfavorite(comment_id)
-        .then(() => req.comment
-          .updateFavoriteCount()
-          .then((comment) => res.json({
-            comment: comment.toObjectJsonFor(user),
-          })))
-        .catch(next);
-    })
-    .catch(next);
+exports.unfavorite = async function (req, res, next) {
+  try {
+    const comment_id = req.comment._id;
+    const user = await User.findById(req.payload.id);
+    if (!user) {
+      return res.sendStatus(401);
+    }
+    await user.unfavorite(comment_id);
+    const comment = await req.comment.updateFavoriteCount();
+    return res.json({
+      comment: comment.toObjectJsonFor(user),
+    });
+  } catch (err) {
+    next(err);
+  }
 };

@@ -46,7 +46,14 @@ const UserSchema = new mongoose.Schema({
     default: false,
   },
   suspension_timeline: Date,
-  favorites: [{ type: mongoose.Schema.Types.ObjectId, ref: 'Review' }],
+  favorites: [{
+    type: mongoose.Schema.Types.ObjectId,
+    refPath: 'on_model',
+  }],
+  on_model: {
+    type: String,
+    enum: ['Review', 'Comment'],
+  },
   reviews: [{ type: mongoose.Schema.Types.ObjectId, ref: 'Review' }],
   pinned_reviews: [{
     type: mongoose.Schema.Types.ObjectId,

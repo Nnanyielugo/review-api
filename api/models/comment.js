@@ -15,7 +15,7 @@ const CommentSchema = new mongoose.Schema({
     type: mongoose.Schema.Types.ObjectId,
     ref: 'Review',
   },
-  favoriteCount: {
+  favorites_count: {
     type: Number,
     default: 0,
   },
@@ -39,6 +39,8 @@ CommentSchema.methods.toObjectJsonFor = function (user) {
     updatedAt: this.updatedAt,
     review: this.review,
     comment_author: this.comment_author.toObjectJsonFor(user),
+    favorites_count: this.favorites_count,
+    favorited: user ? user.isFavorite(this._id) : false,
   };
 };
 

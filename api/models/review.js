@@ -37,14 +37,10 @@ const ReviewSchema = new mongoose.Schema({
 
 ReviewSchema.plugin(uniqueValidator, { message: '{Path} is already taken.' });
 
-ReviewSchema.methods.updateFavoriteCount = function () {
-  const review = this;
-  return User
-    .countDocuments({ favorites: { $in: [review.id] } })
-    .then((count) => {
-      review.favorites_count = count;
-      return review.save();
-    });
+ReviewSchema.methods.updateFavoriteCount = async function () {
+  const count = await User.countDocuments({ favorites: { $in: [this._id] } });
+  this.favorites_count = count;
+  return this.save();
 };
 
 ReviewSchema.methods.toObjectJsonFor = function (user) {

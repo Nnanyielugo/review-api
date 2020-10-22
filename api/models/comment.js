@@ -21,14 +21,10 @@ const CommentSchema = new mongoose.Schema({
   },
 }, { timestamps: true });
 
-CommentSchema.methods.updateFavoriteCount = function () {
-  const comment = this;
-  return User
-    .countDocuments({ favorites: { $in: [comment.id] } })
-    .then((count) => {
-      comment.favorites_count = count;
-      return comment.save();
-    });
+CommentSchema.methods.updateFavoriteCount = async function () {
+  const count = await User.countDocuments({ favorites: { $in: [this._id] } });
+  this.favorites_count = count;
+  return this.save();
 };
 
 CommentSchema.methods.toObjectJsonFor = function (user) {

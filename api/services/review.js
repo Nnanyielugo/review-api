@@ -8,7 +8,7 @@ exports.preloadReview = async function (req, res, next, id) {
   try {
     const review = await Review
       .findById(id)
-      .populate('review_author', 'username follower_count first_name family_name')
+      .populate('review_author', 'username follower_count first_name family_name following')
       .populate('book', 'title summary author');
 
     if (!review) {

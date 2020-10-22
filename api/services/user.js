@@ -1,6 +1,8 @@
-const User = require('mongoose').model('User');
+const { model } = require('mongoose');
 const passport = require('passport');
 const user_utils = require('../utils/user_utils');
+
+const User = model('User');
 
 module.exports.signup = async (req, res, next) => {
   try {
@@ -10,20 +12,6 @@ module.exports.signup = async (req, res, next) => {
           message: 'You need to supply the user object with this request',
         },
       });
-    }
-
-    const user = new User();
-    user.username = req.body.user.username;
-    user.email = req.body.user.email;
-    user.first_name = req.body.user.first_name;
-    user.family_name = req.body.user.family_name;
-    user.setPassword(req.body.user.password);
-    if (req.body.user.give_admin_priviledges) {
-      user.user_type = 'admin';
-    }
-
-    if (req.body.user.give_mod_priviledges) {
-      user.user_type = 'moderator';
     }
 
     if (
@@ -39,6 +27,23 @@ module.exports.signup = async (req, res, next) => {
           message: 'Required form values need to be complete!',
         },
       });
+    }
+
+    const user = new User({
+      username: req.body.user.username,
+      email: req.body.user.email,
+      first_name: req.body.user.first_name,
+      family_name: req.body.user.family_name,
+    });
+
+    user.setPassword(req.body.user.password);
+
+    if (req.body.user.give_admin_priviledges) {
+      user.user_type = 'admin';
+    }
+
+    if (req.body.user.give_mod_priviledges) {
+      user.user_type = 'moderator';
     }
 
     await user.save();

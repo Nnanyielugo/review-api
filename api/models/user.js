@@ -108,7 +108,7 @@ UserSchema.methods.toObjectJsonFor = function (user) {
     username: this.username,
     bio: this.bio,
     image_src: this.image_src,
-    following: user ? user.isFollowing(this._id) : false,
+    following: user ? this.isFollowing(user._id) : false,
     followers: this.followers,
     follower_count: this.follower_count,
     first_name: this.first_name,
@@ -148,32 +148,51 @@ UserSchema.methods.removeFollower = function (profile, user) {
   return profile.save();
 };
 
-UserSchema.methods.follow = function (id) {
-  if (!this.following.includes(id)) {
-    this.following.unshift(id);
-  }
+UserSchema.methods.follow = function (target_user) {
+  const update_following = () => {
+    if (!this.following.includes(target_user._id)) {
+      this.following.unshift(target_user._id);
+      return this.save();
+    }
+  };
+
+  const update_followers = () => {
+    if (!target_user.followers.includes(this._id)) {
+      target_user.followers.unshift(this._id);
+      return target_user.save();
+    }
+  };
+
+  return Promise.all([update_following(), update_followers()]);
 };
 
-UserSchema.methods.unfollow = function (id) {
-  if (this.following.includes(id)) {
-    this.following.remove(id);
-    return this.save();
-  }
+UserSchema.methods.unfollow = function (target_user) {
+  const update_following = () => {
+    if (this.following.includes(target_user._id)) {
+      this.following.remove(target_user._id);
+      return this.save();
+    }
+  };
+
+  const update_followers = () => {
+    if (target_user.followers.includes(this._id)) {
+      target_user.followers.remove(this._id);
+      return target_user.save();
+    }
+  };
+
+  return Promise.all([update_following(), update_followers()]);
 };
 
 UserSchema.methods.isFollowing = function (id) {
   return this.following.some((followId) => followId.toString() === id.toString());
 };
 
-const User = mongoose.model('User', UserSchema);
-
-UserSchema.methods.updateFollowerCount = function (profile) {
-  return User
-    .count({ followers: { $in: [profile.id] } })
-    .then(() => { // examine how this method works, and fix where necessary
-      profile.follower_count = profile.followers.length;
-      return profile.save();
-    });
+UserSchema.methods.updateFollowerCount = async function (count) {
+  this.follower_count = count;
+  return this.save();
 };
+
+const User = mongoose.model('User', UserSchema);
 
 module.exports = User;

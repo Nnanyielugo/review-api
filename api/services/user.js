@@ -157,3 +157,51 @@ module.exports.suspend = async (req, res, next) => {
     next(err);
   }
 };
+
+module.exports.follow = async (req, res, next) => {
+  try {
+    const user_id = req.payload.id;
+    const user = await User.findById(user_id);
+    const target_user = await User.findById(req.params.id);
+    if (!user) {
+      return res.sendStatus(401);
+    }
+    if (user.isFollowing(target_user._id)) {
+      throw new Error('You are already following this user');
+    }
+
+    await user.follow(target_user);
+    const count = await User.countDocuments({ followers: { $in: [user._id] } });
+    await target_user.updateFollowerCount(count);
+    return res.json({
+      user: user.toObjectJsonFor(target_user),
+      target_user: target_user.toObjectJsonFor(user),
+    });
+  } catch (err) {
+    next(err);
+  }
+};
+
+module.exports.unfollow = async (req, res, next) => {
+  try {
+    const user_id = req.payload.id;
+    const user = await User.findById(user_id);
+    const target_user = await User.findById(req.params.id);
+    if (!user) {
+      return res.sendStatus(401);
+    }
+    if (!user.isFollowing(target_user._id)) {
+      throw new Error('You don\'t follow this user');
+    }
+
+    await user.unfollow(target_user);
+    const count = await User.countDocuments({ followers: { $in: [user._id] } });
+    await target_user.updateFollowerCount(count);
+    return res.json({
+      user: user.toObjectJsonFor(target_user),
+      target_user: target_user.toObjectJsonFor(user),
+    });
+  } catch (err) {
+    next(err);
+  }
+};

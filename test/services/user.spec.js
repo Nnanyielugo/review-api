@@ -206,5 +206,33 @@ describe('User tests', () => {
       expect(responseBody.error).to.exist;
       expect(responseBody.error.message).to.equal('No authorization token was found');
     });
+
+    it('fails to follow if user is already following', async () => {
+      await chai
+        .request(app)
+        .post(`${user_path}/${alternate_user._id}/follow`)
+        .set('authorization', `Bearer ${user.token}`)
+        .send();
+
+      const response = await chai
+        .request(app)
+        .post(`${user_path}/${alternate_user._id}/follow`)
+        .set('authorization', `Bearer ${user.token}`)
+        .send();
+
+      expect(response.body.error).to.be.an('object');
+      expect(response.body.error.message).to.equal('You are already following this user');
+    });
+
+    it('fails to unfollow if user isn\'t following', async () => {
+      const response = await chai
+        .request(app)
+        .post(`${user_path}/${alternate_user._id}/unfollow`)
+        .set('authorization', `Bearer ${user.token}`)
+        .send();
+
+      expect(response.body.error).to.be.an('object');
+      expect(response.body.error.message).to.equal('You don\'t follow this user');
+    });
   });
 });

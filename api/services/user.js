@@ -1,6 +1,6 @@
 const { model } = require('mongoose');
 const passport = require('passport');
-const user_utils = require('../utils/user_utils');
+const utils = require('../utils/user');
 
 const User = model('User');
 
@@ -78,7 +78,7 @@ module.exports.login = (req, res, next) => {
       return res.status(422).json(info);
     }
     if (user.suspended && user.suspension_timeline > Date.now()) {
-      user_utils.unsuspend_user(user._id);
+      utils.unsuspend_user(user._id);
     }
     user.token = user.generateJwt();
     return res.json({ user: user.toAuthJsonFor() });
@@ -145,13 +145,14 @@ module.exports.suspend = async (req, res, next) => {
   try {
     const super_user = await User.findById(req.payload.id);
     if (!super_user) {
+      // throw new Error({})
       return res.sendStatus(401);
     }
     if (super_user.user_type !== 'admin' && super_user.user_type !== 'moderator') {
       return res.status(401).json({ error: { message: 'You have to be an admin or a moderator to perform this action' } });
     }
 
-    const user = await user_utils.suspend_user(req.params.id);
+    const user = await utils.suspend_user(req.params.id);
     return res.json({ user: user.toObjectJsonFor(user) });
   } catch (err) {
     next(err);

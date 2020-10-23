@@ -1,6 +1,6 @@
 const mongoose = require('mongoose');
 const { dbUrl } = require('config');
-const connect_mongoose = require('../utils/mongoose_utils');
+const { connect_mongoose } = require('../utils/mongoose');
 
 const isTest = process.env.NODE_ENV === 'test';
 

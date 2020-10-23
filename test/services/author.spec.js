@@ -2,7 +2,7 @@ const chai = require('chai');
 const chaiHttp = require('chai-http');
 const { MongoMemoryServer } = require('mongodb-memory-server');
 const mongoose = require('mongoose');
-const connect_mongoose = require('../../api/utils/mongoose_utils');
+const { connect_mongoose } = require('../../api/utils/mongoose');
 const app = require('../../app');
 const {
   valid_signup_user, alternate_signup_user,

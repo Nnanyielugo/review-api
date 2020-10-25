@@ -149,7 +149,7 @@ describe('Book tests', () => {
       expect(responseBook.title).to.equal(modified_book.title);
       expect(responseBook.summary).to.equal(modified_book.summary);
       expect(responseBook.isbn).to.equal(modified_book.isbn);
-      expect(responseBook.author).to.equal(author._id);
+      expect(responseBook.author._id).to.equal(author._id);
     });
 
     it('lets admin update book it did not create', async () => {
@@ -169,7 +169,7 @@ describe('Book tests', () => {
       expect(responseBook.title).to.equal(modified_book.title);
       expect(responseBook.summary).to.equal(modified_book.summary);
       expect(responseBook.isbn).to.equal(modified_book.isbn);
-      expect(responseBook.author).to.equal(author._id);
+      expect(responseBook.author._id).to.equal(author._id);
       expect(responseBook.edited_by).to.be.a('string');
       expect(responseBook.edited_by).to.equal(superuser._id);
     });
@@ -236,7 +236,7 @@ describe('Book tests', () => {
         .request(app)
         .get(`${book_path}/5f49249841523c293c3e387c`);
 
-      expect(response.status).to.equal(400);
+      expect(response.status).to.equal(404);
       expect(response.body.book).to.be.undefined;
       expect(response.body.error).to.be.an('object');
       expect(response.body.error.message).to.equal('The book you are looking for does not exist.');
@@ -249,7 +249,7 @@ describe('Book tests', () => {
         .set('authorization', `Bearer ${user.token}`)
         .send({ book: modified_book });
 
-      expect(response.status).to.equal(400);
+      expect(response.status).to.equal(404);
       expect(response.body.book).to.be.undefined;
       expect(response.body.error).to.be.an('object');
       expect(response.body.error.message).to.equal('The book you are looking for does not exist.');
@@ -281,7 +281,7 @@ describe('Book tests', () => {
       expect(response.status).to.equal(400);
       expect(response.body.book).to.be.undefined;
       expect(response.body.error).to.be.an('object');
-      expect(response.body.error.message).to.equal('You need to supply the book object with this request');
+      expect(response.body.error.message).to.equal('You need to supply the book object with this request.');
     });
 
     it('errors out when book object is not provided for edit', async () => {
@@ -297,7 +297,7 @@ describe('Book tests', () => {
       expect(response.status).to.equal(400);
       expect(response.body.book).to.be.undefined;
       expect(response.body.error).to.be.an('object');
-      expect(response.body.error.message).to.equal('You need to supply the book object with this request');
+      expect(response.body.error.message).to.equal('You need to supply the book object with this request.');
     });
 
     it('fails to delete with invalid id', async () => {
@@ -306,7 +306,7 @@ describe('Book tests', () => {
         .delete(`${book_path}/5f49249841523c293c3e387c`)
         .set('authorization', `Bearer ${user.token}`);
 
-      expect(response.status).to.equal(400);
+      expect(response.status).to.equal(404);
       expect(response.body.error).to.be.an('object');
       expect(response.body.error.message).to.equal('The book you are looking for does not exist.');
     });

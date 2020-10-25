@@ -306,7 +306,7 @@ describe('Comment tests', () => {
             ...alternate_comment,
           },
         });
-      expect(response.status).to.equal(400);
+      expect(response.status).to.equal(403);
       expect(response.body.error).to.be.an('object');
       expect(response.body.error.message).to.equal('Suspended users cannot edit comments!');
     });

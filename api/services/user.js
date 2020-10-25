@@ -1,16 +1,16 @@
 const { model } = require('mongoose');
 const passport = require('passport');
 const utils = require('../utils/user');
+const { ApiException } = require('../utils/error');
 
 const User = model('User');
 
 module.exports.signup = async (req, res, next) => {
   try {
     if (!req.body.user) {
-      return res.status(400).json({
-        error: {
-          message: 'You need to supply the user object with this request',
-        },
+      throw new ApiException({
+        message: 'You need to supply the user object with this request',
+        status: 400,
       });
     }
 
@@ -22,10 +22,9 @@ module.exports.signup = async (req, res, next) => {
         || !req.body.user.family_name
     ) {
       // generic error message since there will be frontend validation
-      return res.status(400).json({
-        error: {
-          message: 'Required form values need to be complete!',
-        },
+      throw new ApiException({
+        message: 'Required form values need to be complete!',
+        status: 400,
       });
     }
 
@@ -55,19 +54,24 @@ module.exports.signup = async (req, res, next) => {
 
 module.exports.login = (req, res, next) => {
   if (!req.body.user) {
-    return res.status(400).json({
-      error: {
-        message: 'You need to supply the user object with this request',
-      },
+    throw new ApiException({
+      message: 'You need to supply the user object with this request',
+      status: 400,
     });
   }
 
   if (!req.body.user.email) {
-    return res.status(422).json({ error: { message: "Email can't be blank" } });
+    throw new ApiException({
+      message: 'Email can\'t be blank',
+      status: 422,
+    });
   }
 
   if (!req.body.user.password) {
-    return res.status(422).json({ error: { message: "Password can't be blank" } });
+    throw new ApiException({
+      message: 'Password can\'t be blank',
+      status: 422,
+    });
   }
 
   passport.authenticate('local', { session: false }, (err, user, info) => {
@@ -75,7 +79,10 @@ module.exports.login = (req, res, next) => {
       return next(err);
     }
     if (!user) {
-      return res.status(422).json(info);
+      throw new ApiException({
+        status: 422,
+        message: info.error.message,
+      });
     }
     if (user.suspended && user.suspension_timeline > Date.now()) {
       utils.unsuspend_user(user._id);
@@ -89,7 +96,7 @@ module.exports.get = async (req, res, next) => {
   try {
     let user = await User.findById(req.params.id);
     if (!user) {
-      return res.sendStatus(401);
+      throw new ApiException({ status: 401 });
     }
 
     if (user.suspended && user.suspension_timeline > Date.now()) {
@@ -116,24 +123,22 @@ module.exports.get = async (req, res, next) => {
 module.exports.update = async (req, res, next) => {
   try {
     if (!req.body.user) {
-      return res.status(400).json({
-        error: {
-          message: 'You need to supply the user object with this request',
-        },
+      throw new ApiException({
+        message: 'You need to supply the user object with this request',
+        status: 400,
       });
     }
 
     const request_user = await User.findById(req.params.id);
     if (request_user._id.toString() !== req.payload.id.toString()) {
-      res.status(400).json({
-        error: {
-          message: "Cannot edit another user's profile!",
-        },
+      throw new ApiException({
+        message: 'Cannot edit another user\'s profile!',
+        status: 400,
       });
     }
     const user = await User.findByIdAndUpdate(req.payload.id, req.body.user, { new: true });
     if (!user) {
-      return res.sendStatus(401);
+      throw new ApiException({ status: 401 });
     }
     return res.json({ user: user.toAuthJsonFor() });
   } catch (err) {
@@ -145,11 +150,13 @@ module.exports.suspend = async (req, res, next) => {
   try {
     const super_user = await User.findById(req.payload.id);
     if (!super_user) {
-      // throw new Error({})
-      return res.sendStatus(401);
+      throw new ApiException({ status: 401 });
     }
     if (super_user.user_type !== 'admin' && super_user.user_type !== 'moderator') {
-      return res.status(401).json({ error: { message: 'You have to be an admin or a moderator to perform this action' } });
+      throw new ApiException({
+        message: 'You have to be an admin or a moderator to perform this action',
+        status: 401,
+      });
     }
 
     const user = await utils.suspend_user(req.params.id);
@@ -165,10 +172,13 @@ module.exports.follow = async (req, res, next) => {
     const user = await User.findById(user_id);
     const target_user = await User.findById(req.params.id);
     if (!user) {
-      return res.sendStatus(401);
+      throw new ApiException({ status: 401 });
     }
     if (user.isFollowing(target_user._id)) {
-      throw new Error('You are already following this user');
+      throw new ApiException({
+        message: 'You are already following this user',
+        status: 400,
+      });
     }
 
     await user.follow(target_user);
@@ -189,10 +199,13 @@ module.exports.unfollow = async (req, res, next) => {
     const user = await User.findById(user_id);
     const target_user = await User.findById(req.params.id);
     if (!user) {
-      return res.sendStatus(401);
+      throw new ApiException({ status: 401 });
     }
     if (!user.isFollowing(target_user._id)) {
-      throw new Error('You don\'t follow this user');
+      throw new ApiException({
+        message: 'You don\'t follow this user',
+        status: 400,
+      });
     }
 
     await user.unfollow(target_user);

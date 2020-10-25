@@ -1,4 +1,5 @@
 const { model } = require('mongoose');
+const { ApiException } = require('../utils/error');
 
 const Comment = model('Comment');
 const User = model('User');
@@ -11,10 +12,9 @@ exports.preloadComment = async function (req, res, next, id) {
       .populate('comment_author');
 
     if (!comment) {
-      return res.status(404).json({
-        error: {
-          message: 'The comment you are looking for does not exist.',
-        },
+      throw new ApiException({
+        message: 'The comment you are looking for does not exist.',
+        status: 404,
       });
     }
 
@@ -51,22 +51,20 @@ exports.get = async function (req, res, next) {
 exports.create = async function (req, res, next) {
   try {
     if (!req.body.comment) {
-      return res.status(400).json({
-        error: {
-          message: 'You need to send the comment object with this request.',
-        },
+      throw new ApiException({
+        message: 'You need to send the comment object with this request.',
+        status: 400,
       });
     }
     const user = await User.findById(req.payload.id);
     if (!user) {
-      return res.sendStatus(401);
+      throw new ApiException({ status: 401 });
     }
 
     if (user.suspended || user.suspension_timeline > Date.now()) {
-      return res.status(403).json({
-        error: {
-          message: 'Suspended users cannot leave comments!',
-        },
+      throw new ApiException({
+        message: 'Suspended users cannot leave comments!',
+        status: 403,
       });
     }
 
@@ -90,17 +88,16 @@ exports.create = async function (req, res, next) {
 exports.update = async function (req, res, next) {
   try {
     if (!req.body.comment) {
-      return res.status(400).json({
-        error: {
-          message: 'You need to send the comment object with this request.',
-        },
+      throw new ApiException({
+        message: 'You need to send the comment object with this request.',
+        status: 400,
       });
     }
     const user_id = req.payload.id;
     const user = await User.findById(user_id);
 
     if (!user) {
-      return req.sendStatus(401);
+      throw new ApiException({ status: 401 });
     }
 
     const comment_author_id = req.comment.comment_author._id;
@@ -109,10 +106,9 @@ exports.update = async function (req, res, next) {
     }
 
     if (user.suspended || user.suspension_timeline > Date.now()) {
-      return res.status(400).json({
-        error: {
-          message: 'Suspended users cannot edit comments!',
-        },
+      throw new ApiException({
+        message: 'Suspended users cannot edit comments!',
+        status: 403,
       });
     }
 
@@ -137,10 +133,9 @@ exports.delete = async function (req, res, next) {
       (comment_author_id.toString() !== user_id.toString())
         && user.user_type !== 'admin'
     ) {
-      return res.status(403).json({
-        error: {
-          message: 'You must either be comment creator or an admin to delete this comment',
-        },
+      throw new ApiException({
+        message: 'You must either be comment creator or an admin to delete this comment',
+        status: 403,
       });
     }
 
@@ -160,7 +155,7 @@ exports.favorite = async function (req, res, next) {
     const comment_id = req.comment._id;
     const user = await User.findById(req.payload.id);
     if (!user) {
-      return res.sendStatus(401);
+      throw new ApiException({ status: 401 });
     }
     await user.favorite(comment_id);
     const comment = await req.comment.updateFavoriteCount();
@@ -177,7 +172,7 @@ exports.unfavorite = async function (req, res, next) {
     const comment_id = req.comment._id;
     const user = await User.findById(req.payload.id);
     if (!user) {
-      return res.sendStatus(401);
+      throw new ApiException({ status: 401 });
     }
     await user.unfavorite(comment_id);
     const comment = await req.comment.updateFavoriteCount();

@@ -216,7 +216,7 @@ describe('Author tests', () => {
       expect(response.status).to.equal(404);
       expect(response.body.author).to.be.undefined;
       expect(response.body.error).to.be.an('object');
-      expect(response.body.error.message).to.equal('Author does not exist');
+      expect(response.body.error.message).to.equal('The author you are looking for does not exist.');
     });
 
     it('fails when user isn\'t creator of author, or superuser', async () => {

@@ -282,7 +282,7 @@ describe('Review tests', () => {
           },
         });
       // console.log(respon/se.body)
-      expect(response.status).to.equal(400);
+      expect(response.status).to.equal(403);
       expect(response.body.error).to.be.an('object');
       expect(response.body.error.message).to.equal('Suspended users cannot make reviews!');
     });
@@ -341,9 +341,9 @@ describe('Review tests', () => {
             book_id: book._id,
           },
         });
-      expect(response.status).to.equal(400);
+      expect(response.status).to.equal(403);
       expect(response.body.error).to.be.an('object');
-      expect(response.body.error.message).to.equal('Suspended users cannot make reviews!');
+      expect(response.body.error.message).to.equal('Suspended users cannot update reviews!');
     });
 
     it('fails when a user attempts to update a review it did not create', async () => {

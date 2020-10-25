@@ -1,4 +1,5 @@
 const { model } = require('mongoose');
+const { ApiException } = require('../utils/error');
 
 const User = model('User');
 const Review = model('Review');
@@ -12,10 +13,9 @@ exports.preloadReview = async function (req, res, next, id) {
       .populate('book', 'title summary author');
 
     if (!review) {
-      return res.status(404).json({
-        error: {
-          message: 'The review you are looking for does not exist.',
-        },
+      throw new ApiException({
+        message: 'The review you are looking for does not exist.',
+        status: 404,
       });
     }
     req.review = review;
@@ -99,10 +99,9 @@ exports.get = async function (req, res, next) {
 exports.create = async function (req, res, next) {
   try {
     if (!req.body.review) {
-      return res.status(400).json({
-        error: {
-          message: 'You need to send the review object with this request.',
-        },
+      throw new ApiException({
+        message: 'You need to send the review object with this request.',
+        status: 400,
       });
     }
     const [user, book] = await Promise.all([
@@ -114,21 +113,19 @@ exports.create = async function (req, res, next) {
         .exec(),
     ]);
     if (!user) {
-      return res.sendStatus(401);
+      return new ApiException({ status: 401 });
     }
     if (user.suspended || user.suspension_timeline > Date.now()) {
-      return res.status(400).json({
-        error: {
-          message: 'Suspended users cannot make reviews!',
-        },
+      throw new ApiException({
+        message: 'Suspended users cannot make reviews!',
+        status: 403,
       });
     }
 
     if (!book) {
-      return res.status(400).json({
-        error: {
-          message: 'The book you are trying to review does not exist!',
-        },
+      throw new ApiException({
+        message: 'The book you are trying to review does not exist!',
+        status: 400,
       });
     }
 
@@ -152,23 +149,21 @@ exports.create = async function (req, res, next) {
 exports.update = async function (req, res, next) {
   try {
     if (!req.body.review) {
-      return res.status(400).json({
-        error: {
-          message: 'You need to send the review object with this request.',
-        },
+      throw new ApiException({
+        message: 'You need to send the review object with this request.',
+        status: 400,
       });
     }
 
     if (req.review.review_author._id.toString() !== req.payload.id.toString()) {
-      return res.sendStatus(403);
+      throw new ApiException({ status: 403 });
     }
 
     const user = await User.findById(req.payload.id);
     if (user.suspended || user.suspension_timeline > Date.now()) {
-      return res.status(400).json({
-        error: {
-          message: 'Suspended users cannot make reviews!',
-        },
+      throw new ApiException({
+        message: 'Suspended users cannot update reviews!',
+        status: 403,
       });
     }
 
@@ -196,19 +191,17 @@ exports.delete = async function (req, res, next) {
     const user_id = req.payload.id;
     const user = await User.findById(user_id);
     if (!user) {
-      return res.status(400).json({
-        error: {
-          message: 'The user you requested does not exist!',
-        },
+      throw new ApiException({
+        message: 'The user you requested does not exist!',
+        status: 400,
       });
     }
 
     if ((req.review.review_author._id.toString() !== user_id.toString())
       && user.user_type !== 'admin') {
-      return res.status(403).json({
-        error: {
-          message: 'You must either be review creator or an admin to delete this review',
-        },
+      throw new ApiException({
+        message: 'You must either be review creator or an admin to delete this review',
+        status: 403,
       });
     }
 
@@ -224,10 +217,9 @@ exports.favorite = async function (req, res, next) {
     const review_id = req.review._id;
     const user = await User.findById(req.payload.id);
     if (!user) {
-      return res.status(400).json({
-        error: {
-          message: 'The user you requested does not exist!',
-        },
+      throw new ApiException({
+        message: 'The user you requested does not exist!',
+        status: 400,
       });
     }
 
@@ -244,10 +236,9 @@ exports.unfavorite = async function (req, res, next) {
     const review_id = req.review._id;
     const user = await User.findById(req.payload.id);
     if (!user) {
-      return res.status(400).json({
-        error: {
-          message: 'The user you requested does not exist!',
-        },
+      throw new ApiException({
+        message: 'The user you requested does not exist!',
+        status: 400,
       });
     }
 

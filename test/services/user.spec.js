@@ -220,6 +220,7 @@ describe('User tests', () => {
         .set('authorization', `Bearer ${user.token}`)
         .send();
 
+      expect(response.status).to.equal(400);
       expect(response.body.error).to.be.an('object');
       expect(response.body.error.message).to.equal('You are already following this user');
     });
@@ -231,6 +232,7 @@ describe('User tests', () => {
         .set('authorization', `Bearer ${user.token}`)
         .send();
 
+      expect(response.status).to.equal(400);
       expect(response.body.error).to.be.an('object');
       expect(response.body.error.message).to.equal('You don\'t follow this user');
     });

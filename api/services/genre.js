@@ -5,6 +5,25 @@ const Genre = model('Genre');
 const Book = model('Book');
 const User = model('User');
 
+exports.preloadGenre = async function (req, res, next, id) {
+  try {
+    const genre = await Genre
+      .findById(id);
+
+    if (!genre) {
+      throw new ApiException({
+        message: 'The genre you are looking for does not exist.',
+        status: 404,
+      });
+    }
+
+    req.genre = genre;
+    return next();
+  } catch (err) {
+    next(err);
+  }
+};
+
 exports.list = async function (req, res, next) {
   try {
     const genres = await Genre
@@ -16,20 +35,20 @@ exports.list = async function (req, res, next) {
   }
 };
 
-exports.detail = function (req, res, next) {
-  const genre = Genre
-    .findById(req.params.id)
-    .exec();
-  const genre_books = Book
-    .find({ genre: req.params.id })
-    .exec();
-  return Promise
-    .all([genre, genre_books])
-    .then(([found_genre, found_genre_books]) => res.status(200).json({
-      genre: found_genre,
-      genre_books: found_genre_books,
-    }))
-    .catch(next);
+exports.detail = async function (req, res, next) {
+  try {
+    const genre_id = req.genre._id;
+    const genre_books = await Book.find({
+      genre: genre_id,
+    });
+
+    return res.json({
+      genre: req.genre,
+      books: genre_books,
+    });
+  } catch (err) {
+    next(err);
+  }
 };
 
 exports.create = async function (req, res, next) {
@@ -61,15 +80,24 @@ exports.create = async function (req, res, next) {
   }
 };
 
-exports.update = function (req, res, next) {
-  const genre = new Genre({
-    name: req.body.name,
-  });
+exports.update = async function (req, res, next) {
+  try {
+    if (req.genre.genre_author.toString() !== req.payload.id.toString()) {
+      throw new ApiException({ status: 403 });
+    }
+    const user = await User.findById(req.payload.id);
+    if (typeof req.body.genre.name !== 'undefined') {
+      req.genre.name = req.body.genre.name;
+      req.genre.genre_author = user; // hack to avoid populating genre author in preload
+    }
 
-  return genre
-    .update()
-    .then((doc) => res.status(201).json({ genre: doc }))
-    .catch(next);
+    await req.genre.updateOne();
+    return res.json({
+      genre: req.genre.toObjectJsonFor(user),
+    });
+  } catch (err) {
+    next(err);
+  }
 };
 
 exports.delete = function (req, res, next) {

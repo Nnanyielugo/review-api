@@ -5,12 +5,15 @@ const Genre = model('Genre');
 const Book = model('Book');
 const User = model('User');
 
-exports.list = function (req, res, next) {
-  return Genre
-    .find()
-    .sort([['name', 'ascending']])
-    .then((genres) => res.status(200).json({ genres }))
-    .catch(next);
+exports.list = async function (req, res, next) {
+  try {
+    const genres = await Genre
+      .find()
+      .sort([['name', 'ascending']]);
+    return res.status(200).json({ genres });
+  } catch (err) {
+    next(err);
+  }
 };
 
 exports.detail = function (req, res, next) {

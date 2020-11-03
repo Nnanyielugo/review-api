@@ -1,4 +1,5 @@
 const { model } = require('mongoose');
+const { ApiException } = require('../utils/error');
 
 const Author = model('Author');
 const Book = model('Book');
@@ -13,10 +14,9 @@ exports.preloadAuthor = async function (req, res, next, id) {
       .populate('books', 'title summary');
 
     if (!author) {
-      return res.status(404).json({
-        error: {
-          message: 'Author does not exist',
-        },
+      throw new ApiException({
+        message: 'The author you are looking for does not exist.',
+        status: 404,
       });
     }
     req.author = author;
@@ -52,10 +52,9 @@ exports.create = async function (req, res, next) {
   try {
     // TODO: backend form validation
     if (!req.body.author) {
-      return res.status(400).json({
-        error: {
-          message: 'You need to supply the author object with this request',
-        },
+      throw new ApiException({
+        message: 'You need to supply the author object with this request',
+        status: 400,
       });
     }
 
@@ -79,10 +78,9 @@ exports.update = async function (req, res, next) {
   // TODO:, sanitize and check data and id passed in.
   try {
     if (!req.body.author) {
-      return res.status(400).json({
-        error: {
-          message: 'You need to supply the author object with this request',
-        },
+      throw new ApiException({
+        message: 'You need to supply the author object with this request',
+        status: 400,
       });
     }
 
@@ -91,16 +89,15 @@ exports.update = async function (req, res, next) {
     const user_obj = await User.findById(req.payload.id);
 
     if (!author) {
-      return res.sendStatus(404);
+      throw new ApiException({ status: 404 });
     }
     if (
       (req.author.created_by._id.toString() !== user_id.toString())
         && (user_obj.user_type !== 'admin')
     ) {
-      return res.status(401).json({
-        error: {
-          message: 'You must either be author author or an admin to edit this author',
-        },
+      throw new ApiException({
+        message: 'You must either be author author or an admin to edit this author',
+        status: 401,
       });
     }
 
@@ -145,18 +142,16 @@ exports.delete = async function (req, res, next) {
       (author.created_by._id.toString() !== user_id.toString())
         && (user.user_type !== 'admin')
     ) {
-      return res.status(401).json({
-        error: {
-          message: 'You must either be author creator or an admin to delete this author',
-        },
+      throw new ApiException({
+        message: 'You must either be author creator or an admin to delete this author',
+        status: 401,
       });
     }
 
     if (author.books.length) {
-      return res.status(400).json({
-        error: {
-          message: 'Author has books. Delete first, then try again',
-        },
+      throw new ApiException({
+        message: 'Author has books. Delete first, then try again',
+        status: 400,
       });
     }
 

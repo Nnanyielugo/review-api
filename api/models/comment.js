@@ -3,8 +3,11 @@ const mongoose = require('mongoose');
 const User = mongoose.model('User');
 
 const CommentSchema = new mongoose.Schema({
-  content: String,
-  author: {
+  content: {
+    type: String,
+    required: true,
+  },
+  comment_author: {
     type: mongoose.Schema.Types.ObjectId,
     ref: 'User',
   },
@@ -12,20 +15,16 @@ const CommentSchema = new mongoose.Schema({
     type: mongoose.Schema.Types.ObjectId,
     ref: 'Review',
   },
-  favoriteCount: {
+  favorites_count: {
     type: Number,
     default: 0,
   },
 }, { timestamps: true });
 
-CommentSchema.methods.updateFavoriteCount = function () {
-  const comment = this;
-  return User
-    .count({ favorites: { $in: [comment.id] } })
-    .then((count) => {
-      comment.favorites_count = count;
-      return comment.save();
-    });
+CommentSchema.methods.updateFavoriteCount = async function () {
+  const count = await User.countDocuments({ favorites: { $in: [this._id] } });
+  this.favorites_count = count;
+  return this.save();
 };
 
 CommentSchema.methods.toObjectJsonFor = function (user) {
@@ -34,7 +33,10 @@ CommentSchema.methods.toObjectJsonFor = function (user) {
     content: this.content,
     createdAt: this.createdAt,
     updatedAt: this.updatedAt,
-    author: this.author.toObjectJsonFor(user),
+    review: this.review,
+    comment_author: this.comment_author.toObjectJsonFor(user),
+    favorites_count: this.favorites_count,
+    favorited: user ? user.isFavorite(this._id) : false,
   };
 };
 

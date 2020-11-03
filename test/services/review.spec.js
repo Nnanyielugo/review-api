@@ -2,13 +2,17 @@ const chai = require('chai');
 const chaiHttp = require('chai-http');
 const { MongoMemoryServer } = require('mongodb-memory-server');
 const mongoose = require('mongoose');
-const connect_mongoose = require('../../api/utils/mongoose_utils');
+const { connect_mongoose } = require('../../api/utils/mongoose');
 const app = require('../../app');
 
-const { valid_review, alternate_review, invalid_review } = require('../mocks/review');
-const { valid_book, alternate_book } = require('../mocks/book');
-const { valid_signup_user, admin_user, alternate_signup_user } = require('../mocks/user');
-const { valid_author, alternate_author } = require('../mocks/author');
+const {
+  valid_review, alternate_review, invalid_review,
+} = require('../mocks/review');
+const {
+  valid_signup_user, admin_user, alternate_signup_user,
+} = require('../mocks/user');
+const { valid_book } = require('../mocks/book');
+const { valid_author } = require('../mocks/author');
 
 chai.use(chaiHttp);
 const { expect } = chai;
@@ -18,7 +22,6 @@ describe('Review tests', () => {
   const book_path = '/api/books';
   const user_path = '/api/users';
   const author_path = '/api/authors';
-  const invalid_token = 'eyJhbGciOiJIUzI1NiIsInR5cAA6IkpXVCJ9.eyJpZCI6IjVmODg1Mzc0MDVjMDU2ODZiYzhmODU0YSIsInVzZXJuYW1lIjoiSGlsZGVnYXJkNTAiLCJleHAiOjE2MDc5NTM3ODAsImlhdCI6MTYwMjc2OTc4MH0.d1xhybGQI3LpZNGmEZff4wPBIyA-eEKQBdqeBSslkaE';
   let mongoServer;
   let user;
   let alternate_user;
@@ -279,7 +282,7 @@ describe('Review tests', () => {
           },
         });
       // console.log(respon/se.body)
-      expect(response.status).to.equal(400);
+      expect(response.status).to.equal(403);
       expect(response.body.error).to.be.an('object');
       expect(response.body.error.message).to.equal('Suspended users cannot make reviews!');
     });
@@ -338,9 +341,9 @@ describe('Review tests', () => {
             book_id: book._id,
           },
         });
-      expect(response.status).to.equal(400);
+      expect(response.status).to.equal(403);
       expect(response.body.error).to.be.an('object');
-      expect(response.body.error.message).to.equal('Suspended users cannot make reviews!');
+      expect(response.body.error.message).to.equal('Suspended users cannot update reviews!');
     });
 
     it('fails when a user attempts to update a review it did not create', async () => {
@@ -378,7 +381,7 @@ describe('Review tests', () => {
         .get(`${review_path}`);
 
       expect(response.status).to.equal(403);
-      expect(response.body.error.message).to.equal('You must either be book creator or an admin to delete this review');
+      expect(response.body.error.message).to.equal('You must either be review creator or an admin to delete this review');
       expect(list.body.reviewsCount).to.equal(1);
     });
   });

@@ -1,82 +1,123 @@
 const { model } = require('mongoose');
+const { ApiException } = require('../utils/error');
 
 const Genre = model('Genre');
 const Book = model('Book');
+const User = model('User');
 
-exports.list = function (req, res, next) {
-  return Genre
-    .find()
-    .sort([['name', 'ascending']])
-    .then((genres) => res.status(200).json({ genres }))
-    .catch(next);
+exports.preloadGenre = async function (req, res, next, id) {
+  try {
+    const genre = await Genre
+      .findById(id);
+
+    if (!genre) {
+      throw new ApiException({
+        message: 'The genre you are looking for does not exist.',
+        status: 404,
+      });
+    }
+
+    req.genre = genre;
+    return next();
+  } catch (err) {
+    next(err);
+  }
 };
 
-exports.detail = function (req, res, next) {
-  const genre = Genre
-    .findById(req.params.id)
-    .exec();
-  const genre_books = Book
-    .find({ genre: req.params.id })
-    .exec();
-  return Promise
-    .all([genre, genre_books])
-    .then(([found_genre, found_genre_books]) => res.status(200).json({
-      genre: found_genre,
-      genre_books: found_genre_books,
-    }))
-    .catch(next);
+exports.list = async function (req, res, next) {
+  try {
+    const genres = await Genre
+      .find()
+      .sort([['name', 'ascending']]);
+    return res.status(200).json({ genres });
+  } catch (err) {
+    next(err);
+  }
 };
 
-exports.create = function (req, res, next) {
-  const genre = new Genre({
-    name: req.body.name,
-  });
+exports.detail = async function (req, res, next) {
+  try {
+    const genre_id = req.genre._id;
+    const genre_books = await Book.find({
+      genre: genre_id,
+    });
 
-  return Genre
-    .findOne({ name: req.body.name })
-    .then((found_genre) => {
-      if (found_genre) {
-        res.status(400).json({
-          message: 'Genre already exists',
-        });
-      }
-      genre
-        .save()
-        .then((doc) => res.status(201).json({ genre: doc }))
-        .catch(next);
-    })
-    .catch(next);
+    return res.json({
+      genre: req.genre,
+      books: genre_books,
+    });
+  } catch (err) {
+    next(err);
+  }
 };
 
-exports.update = function (req, res, next) {
-  const genre = new Genre({
-    name: req.body.name,
-  });
+exports.create = async function (req, res, next) {
+  try {
+    if (!req.body.genre) {
+      throw new ApiException({
+        message: 'You need to send the genre object with this request.',
+        status: 400,
+      });
+    }
 
-  return genre
-    .update()
-    .then((doc) => res.status(201).json({ genre: doc }))
-    .catch(next);
+    const user = await User.findById(req.payload.id);
+    if (user.user_type !== 'admin' && user.user_type !== 'moderator') {
+      throw new ApiException({
+        message: 'Only admins and moderators are allowed to create genres!',
+        status: 403,
+      });
+    }
+
+    const genre = new Genre({
+      name: req.body.genre.name,
+      genre_author: user,
+    });
+
+    await genre.save();
+    return res.status(201).json({ genre: genre.toObjectJsonFor(user) });
+  } catch (err) {
+    next(err);
+  }
 };
 
-exports.delete = function (req, res, next) {
-  const genre = Genre
-    .findById(req.params.id)
-    .exec();
-  const genre_books = Book
-    .find({ genre: req.params.id })
-    .exec();
+exports.update = async function (req, res, next) {
+  try {
+    if (req.genre.genre_author.toString() !== req.payload.id.toString()) {
+      throw new ApiException({ status: 403 });
+    }
+    const user = await User.findById(req.payload.id);
+    if (typeof req.body.genre.name !== 'undefined') {
+      req.genre.name = req.body.genre.name;
+      req.genre.genre_author = user; // hack to avoid populating genre author in preload
+    }
 
-  return Promise
-    .all([genre, genre_books])
-    .then(([found_genre, found_genre_books]) => {
-      if (found_genre_books.length) {
-        return res.status(400).json({ message: 'This genre has books. Please remove books in Genre and try again' });
-      }
-      return found_genre
-        .remove()
-        .then(() => res.status(204))
-        .catch(next);
-    })
-    .catch(next);
+    await req.genre.updateOne();
+    return res.json({
+      genre: req.genre.toObjectJsonFor(user),
+    });
+  } catch (err) {
+    next(err);
+  }
+};
+
+exports.delete = async function (req, res, next) {
+  try {
+    if (req.genre.genre_author.toString() !== req.payload.id.toString()) {
+      throw new ApiException({ status: 403 });
+    }
+
+    const genre_books = await Book
+      .find({ genre: req.genre._id });
+
+    if (genre_books.length) {
+      throw new ApiException({
+        status: 400,
+        message: 'This genre has books. Please remove books in Genre and try again',
+      });
+    }
+    await req.genre.remove();
+    return res.sendStatus(204);
+  } catch (err) {
+    next(err);
+  }
 };

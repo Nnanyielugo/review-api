@@ -7,6 +7,6 @@ const options = {
   useCreateIndex: true,
 };
 
-module.exports = function (db_url) {
+module.exports.connect_mongoose = function (db_url) {
   mongoose.connect(db_url, options);
 };

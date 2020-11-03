@@ -2,7 +2,7 @@ const chai = require('chai');
 const chaiHttp = require('chai-http');
 const mongoose = require('mongoose');
 const { MongoMemoryServer } = require('mongodb-memory-server');
-const connect_mongoose = require('../../api/utils/mongoose_utils');
+const { connect_mongoose } = require('../../api/utils/mongoose');
 
 const app = require('../../app');
 const {
@@ -99,5 +99,7 @@ describe('Signup tests', () => {
       expect(response.body.error.message).to.be.a('string');
       expect(response.body.error.message).to.equal('Required form values need to be complete!');
     });
+
+    it.skip('fails to register duplicate users', () => {});
   });
 });

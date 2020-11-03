@@ -2,7 +2,7 @@ const chai = require('chai');
 const chaiHttp = require('chai-http');
 const mongoose = require('mongoose');
 const { MongoMemoryServer } = require('mongodb-memory-server');
-const connect_mongoose = require('../../api/utils/mongoose_utils');
+const { connect_mongoose } = require('../../api/utils/mongoose');
 const app = require('../../app');
 const {
   valid_signup_user, modified_user,
@@ -98,6 +98,50 @@ describe('User tests', () => {
       expect(returnedUser.family_name).to.equal(user.family_name);
       expect(returnedUser.suspended).to.be.true;
     });
+
+    it('follows user', async () => {
+      const alternate_resp = await chai
+        .request(app)
+        .post(`${user_path}/`)
+        .send({ user: alternate_signup_user });
+      const alternate_user = alternate_resp.body.user;
+
+      const response = await chai
+        .request(app)
+        .post(`${user_path}/${alternate_user._id}/follow`)
+        .set('authorization', `Bearer ${user.token}`)
+        .send();
+
+      expect(response.body.user.following).to.be.true;
+      expect(response.body.target_user.follower_count).to.equal(1);
+      expect(response.body.target_user.followers[0].toString()).to.equal(user._id.toString());
+      expect(response.body.target_user.following).to.be.false;
+    });
+
+    it('unfollows user', async () => {
+      const alternate_resp = await chai
+        .request(app)
+        .post(`${user_path}/`)
+        .send({ user: alternate_signup_user });
+      const alternate_user = alternate_resp.body.user;
+
+      await chai
+        .request(app)
+        .post(`${user_path}/${alternate_user._id}/follow`)
+        .set('authorization', `Bearer ${user.token}`)
+        .send();
+
+      const response = await chai
+        .request(app)
+        .post(`${user_path}/${alternate_user._id}/unfollow`)
+        .set('authorization', `Bearer ${user.token}`)
+        .send();
+
+      expect(response.body.user.following).to.be.false;
+      expect(response.body.target_user.follower_count).to.equal(0);
+      expect(response.body.target_user.followers.length).to.equal(0);
+      expect(response.body.target_user.following).to.be.false;
+    });
   });
 
   describe('failing tests', () => {
@@ -161,6 +205,36 @@ describe('User tests', () => {
       expect(responseBody.user).to.be.undefined;
       expect(responseBody.error).to.exist;
       expect(responseBody.error.message).to.equal('No authorization token was found');
+    });
+
+    it('fails to follow if user is already following', async () => {
+      await chai
+        .request(app)
+        .post(`${user_path}/${alternate_user._id}/follow`)
+        .set('authorization', `Bearer ${user.token}`)
+        .send();
+
+      const response = await chai
+        .request(app)
+        .post(`${user_path}/${alternate_user._id}/follow`)
+        .set('authorization', `Bearer ${user.token}`)
+        .send();
+
+      expect(response.status).to.equal(400);
+      expect(response.body.error).to.be.an('object');
+      expect(response.body.error.message).to.equal('You are already following this user');
+    });
+
+    it('fails to unfollow if user isn\'t following', async () => {
+      const response = await chai
+        .request(app)
+        .post(`${user_path}/${alternate_user._id}/unfollow`)
+        .set('authorization', `Bearer ${user.token}`)
+        .send();
+
+      expect(response.status).to.equal(400);
+      expect(response.body.error).to.be.an('object');
+      expect(response.body.error.message).to.equal('You don\'t follow this user');
     });
   });
 });

@@ -14,7 +14,7 @@ const { valid_author } = require('../mocks/author');
 chai.use(chaiHttp);
 const { expect } = chai;
 
-describe.only('Genre tests', () => {
+describe('Genre tests', () => {
   const genre_path = '/api/genres';
   const user_path = '/api/users';
   const book_path = '/api/books';

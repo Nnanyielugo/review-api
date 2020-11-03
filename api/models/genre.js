@@ -18,7 +18,7 @@ const GenreSchema = Schema({
   },
 });
 
-GenreSchema.plugin(uniqueValidator, { message: '{Path} is already taken.' });
+GenreSchema.plugin(uniqueValidator);
 
 GenreSchema.methods.toObjectJsonFor = function (user) {
   return {

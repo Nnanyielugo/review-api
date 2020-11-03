@@ -17,6 +17,7 @@ describe.only('Genre tests', () => {
   const genre_path = '/api/genres';
   const user_path = '/api/users';
   let genre;
+  let alt_genre
   let user;
   let superuser;
   let mongoServer;
@@ -41,6 +42,17 @@ describe.only('Genre tests', () => {
         },
       });
     genre = valid_genre_resp;
+
+    const alternate_genre_resp = await chai
+      .request(app)
+      .post(`${genre_path}/`)
+      .set('authorization', `Bearer ${superuser.token}`)
+      .send({
+        genre: {
+          ...alternate_genre,
+        },
+      });
+    alt_genre = alternate_genre_resp;
   });
 
   afterEach(async () => {
@@ -53,20 +65,34 @@ describe.only('Genre tests', () => {
       expect(genre.body.genre.name).to.equal(valid_genre.name);
       expect(genre.body.genre.genre_author.username).to.equal(admin_user.username);
     });
+
+    it('lists genres', async () => {
+      const response = await chai
+        .request(app)
+        .get(`${genre_path}/`);
+
+      expect(response.body.genres).to.be.an('array');
+      expect(response.body.genres.length).to.equal(2);
+      expect(response.body.genres[0].name).to.equal(valid_genre.name);
+      expect(response.body.genres[1].name).to.equal(alternate_genre.name);
+    });
   });
 
   describe('failing tests', () => {
-    it('fails to let regular user create a genre', async () => {
+    beforeEach(async () => {
       const user_resp = await chai
         .request(app)
         .post(`${user_path}/`)
         .send({ user: valid_signup_user });
 
       user = user_resp.body.user;
+    });
+
+    it('fails to let regular user create a genre', async () => {
       const response = await chai
         .request(app)
         .post(`${genre_path}/`)
-        .set('authorization', `Bearer ${user_resp.body.user.token}`)
+        .set('authorization', `Bearer ${user.token}`)
         .send({
           genre: {
             ...valid_genre,

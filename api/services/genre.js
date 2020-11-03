@@ -1,7 +1,9 @@
 const { model } = require('mongoose');
+const { ApiException } = require('../utils/error');
 
 const Genre = model('Genre');
 const Book = model('Book');
+const User = model('User');
 
 exports.list = function (req, res, next) {
   return Genre
@@ -27,25 +29,33 @@ exports.detail = function (req, res, next) {
     .catch(next);
 };
 
-exports.create = function (req, res, next) {
-  const genre = new Genre({
-    name: req.body.name,
-  });
+exports.create = async function (req, res, next) {
+  try {
+    if (!req.body.genre) {
+      throw new ApiException({
+        message: 'You need to send the genre object with this request.',
+        status: 400,
+      });
+    }
 
-  return Genre
-    .findOne({ name: req.body.name })
-    .then((found_genre) => {
-      if (found_genre) {
-        res.status(400).json({
-          message: 'Genre already exists',
-        });
-      }
-      genre
-        .save()
-        .then((doc) => res.status(201).json({ genre: doc }))
-        .catch(next);
-    })
-    .catch(next);
+    const user = await User.findById(req.payload.id);
+    if (user.user_type !== 'admin' && user.user_type !== 'moderator') {
+      throw new ApiException({
+        message: 'Only admins and moderators are allowed to create genres!',
+        status: 403,
+      });
+    }
+
+    const genre = new Genre({
+      name: req.body.genre.name,
+      genre_author: user,
+    });
+
+    await genre.save();
+    return res.status(201).json({ genre: genre.toObjectJsonFor(user) });
+  } catch (err) {
+    next(err);
+  }
 };
 
 exports.update = function (req, res, next) {

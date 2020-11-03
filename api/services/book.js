@@ -65,8 +65,9 @@ exports.create = async function (req, res, next) {
       summary: req.body.book.summary,
       created_by: user_id,
       isbn: req.body.book.isbn,
-      genre: (typeof req.body.book.genre === 'undefined') ? [] : req.body.book.genre.split(','),
+      genre: (typeof req.body.book.genre === 'undefined') ? [] : req.body.book.genre,
     });
+
     await book.save();
     return res.status(201).json({ book: book.toObjectJsonFor() });
   } catch (err) {

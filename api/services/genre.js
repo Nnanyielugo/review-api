@@ -100,24 +100,24 @@ exports.update = async function (req, res, next) {
   }
 };
 
-exports.delete = function (req, res, next) {
-  const genre = Genre
-    .findById(req.params.id)
-    .exec();
-  const genre_books = Book
-    .find({ genre: req.params.id })
-    .exec();
+exports.delete = async function (req, res, next) {
+  try {
+    if (req.genre.genre_author.toString() !== req.payload.id.toString()) {
+      throw new ApiException({ status: 403 });
+    }
 
-  return Promise
-    .all([genre, genre_books])
-    .then(([found_genre, found_genre_books]) => {
-      if (found_genre_books.length) {
-        return res.status(400).json({ message: 'This genre has books. Please remove books in Genre and try again' });
-      }
-      return found_genre
-        .remove()
-        .then(() => res.status(204))
-        .catch(next);
-    })
-    .catch(next);
+    const genre_books = await Book
+      .find({ genre: req.genre._id });
+
+    if (genre_books.length) {
+      throw new ApiException({
+        status: 400,
+        message: 'This genre has books. Please remove books in Genre and try again',
+      });
+    }
+    await req.genre.remove();
+    return res.sendStatus(204);
+  } catch (err) {
+    next(err);
+  }
 };

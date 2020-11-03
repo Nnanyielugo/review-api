@@ -1,7 +1,7 @@
 module.exports.valid_genre = {
-  genre: 'romance',
+  name: 'romance',
 };
 
 module.exports.alternate_genre = {
-  genre: 'thriller',
+  name: 'thriller',
 };

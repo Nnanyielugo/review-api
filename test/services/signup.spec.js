@@ -99,5 +99,7 @@ describe('Signup tests', () => {
       expect(response.body.error.message).to.be.a('string');
       expect(response.body.error.message).to.equal('Required form values need to be complete!');
     });
+
+    it.skip('fails to register duplicate users', () => {});
   });
 });

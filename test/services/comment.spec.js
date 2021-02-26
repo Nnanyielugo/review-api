@@ -271,7 +271,7 @@ describe('Comment tests', () => {
     it('fails when suspended users attempt to create comments', async () => {
       await chai
         .request(app)
-        .post(`/api/users/${user._id}/suspend`)
+        .post(`/api/users/${user.activeUser._id}/suspend`)
         .set('authorization', `Bearer ${superuser.token}`)
         .send();
 
@@ -293,7 +293,7 @@ describe('Comment tests', () => {
       const response_comment = comment.body.comment;
       await chai
         .request(app)
-        .post(`/api/users/${user._id}/suspend`)
+        .post(`/api/users/${user.activeUser._id}/suspend`)
         .set('authorization', `Bearer ${superuser.token}`)
         .send();
 

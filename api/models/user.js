@@ -89,17 +89,19 @@ UserSchema.methods.generateJwt = function () {
 
 UserSchema.methods.toAuthJsonFor = function () {
   return {
-    _id: this._id,
-    username: this.username,
-    email: this.email,
+    activeUser: {
+      _id: this._id,
+      username: this.username,
+      email: this.email,
+      bio: this.bio,
+      followers: this.followers,
+      image_src: this.image_src,
+      first_name: this.first_name,
+      family_name: this.family_name,
+      user_type: this.user_type,
+      suspended: this.suspended,
+    },
     token: this.generateJwt(),
-    bio: this.bio,
-    followers: this.followers,
-    image_src: this.image_src,
-    first_name: this.first_name,
-    family_name: this.family_name,
-    user_type: this.user_type,
-    suspended: this.suspended,
   };
 };
 

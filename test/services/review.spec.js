@@ -267,7 +267,7 @@ describe('Review tests', () => {
     it('fails when suspended users attempt to create reviews', async () => {
       await chai
         .request(app)
-        .post(`/api/users/${user._id}/suspend`)
+        .post(`/api/users/${user.activeUser._id}/suspend`)
         .set('authorization', `Bearer ${superuser.token}`)
         .send();
 
@@ -327,7 +327,7 @@ describe('Review tests', () => {
     it('fails when suspended users attempt to update reviews', async () => {
       await chai
         .request(app)
-        .post(`/api/users/${user._id}/suspend`)
+        .post(`/api/users/${user.activeUser._id}/suspend`)
         .set('authorization', `Bearer ${superuser.token}`)
         .send();
 

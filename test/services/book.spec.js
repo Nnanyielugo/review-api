@@ -171,7 +171,7 @@ describe('Book tests', () => {
       expect(responseBook.isbn).to.equal(modified_book.isbn);
       expect(responseBook.author._id).to.equal(author._id);
       expect(responseBook.edited_by).to.be.a('string');
-      expect(responseBook.edited_by).to.equal(superuser._id);
+      expect(responseBook.edited_by).to.equal(superuser.activeUser._id);
     });
 
     it('deletes book', async () => {

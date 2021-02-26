@@ -44,20 +44,20 @@ describe('User tests', () => {
     it('fetches the auth user object when viewing own profile', async () => {
       const response = await chai
         .request(app)
-        .get(`${user_path}/${user._id}`)
+        .get(`${user_path}/${user.activeUser._id}`)
         .set('authorization', `Bearer ${user.token}`)
         .send();
 
       const returnedUser = response.body.user;
       expect(returnedUser).to.be.an('object');
-      expect(returnedUser.username).to.equal(valid_signup_user.username);
-      expect(returnedUser.email).to.equal(valid_signup_user.email.toLowerCase());
+      expect(returnedUser.activeUser.username).to.equal(valid_signup_user.username);
+      expect(returnedUser.activeUser.email).to.equal(valid_signup_user.email.toLowerCase());
     });
 
     it('fetches the user object when viewing profile as other user', async () => {
       const response = await chai
         .request(app)
-        .get(`${user_path}/${user._id}`)
+        .get(`${user_path}/${user.activeUser._id}`)
         .send();
 
       const returnedUser = response.body.user;
@@ -72,30 +72,31 @@ describe('User tests', () => {
     it('edits the user', async () => {
       const response = await chai
         .request(app)
-        .patch(`${user_path}/${user._id}`)
+        .patch(`${user_path}/${user.activeUser._id}`)
         .set('authorization', `Bearer ${user.token}`)
         .send({ user: modified_user });
 
       const returnedUser = response.body.user;
+
       expect(returnedUser).to.be.an('object');
-      expect(returnedUser.username).to.equal(modified_user.username);
-      expect(returnedUser.email).to.equal(modified_user.email.toLowerCase());
-      expect(returnedUser.first_name).to.equal(modified_user.first_name);
-      expect(returnedUser.family_name).to.equal(modified_user.family_name);
+      expect(returnedUser.activeUser.username).to.equal(modified_user.username);
+      expect(returnedUser.activeUser.email).to.equal(modified_user.email.toLowerCase());
+      expect(returnedUser.activeUser.first_name).to.equal(modified_user.first_name);
+      expect(returnedUser.activeUser.family_name).to.equal(modified_user.family_name);
     });
 
     it('suspends the user', async () => {
       const response = await chai
         .request(app)
-        .post(`${user_path}/${user._id}/suspend`)
+        .post(`${user_path}/${user.activeUser._id}/suspend`)
         .set('authorization', `Bearer ${admin.token}`)
         .send({ user: { _id: user._id } });
 
       const returnedUser = response.body.user;
       expect(returnedUser).to.be.an('object');
-      expect(returnedUser.username).to.equal(user.username);
-      expect(returnedUser.first_name).to.equal(user.first_name);
-      expect(returnedUser.family_name).to.equal(user.family_name);
+      expect(returnedUser.username).to.equal(user.activeUser.username);
+      expect(returnedUser.first_name).to.equal(user.activeUser.first_name);
+      expect(returnedUser.family_name).to.equal(user.activeUser.family_name);
       expect(returnedUser.suspended).to.be.true;
     });
 
@@ -108,13 +109,13 @@ describe('User tests', () => {
 
       const response = await chai
         .request(app)
-        .post(`${user_path}/${alternate_user._id}/follow`)
+        .post(`${user_path}/${alternate_user.activeUser._id}/follow`)
         .set('authorization', `Bearer ${user.token}`)
         .send();
 
       expect(response.body.user.following).to.be.true;
       expect(response.body.target_user.follower_count).to.equal(1);
-      expect(response.body.target_user.followers[0].toString()).to.equal(user._id.toString());
+      expect(response.body.target_user.followers[0].toString()).to.equal(user.activeUser._id.toString());
       expect(response.body.target_user.following).to.be.false;
     });
 
@@ -127,13 +128,13 @@ describe('User tests', () => {
 
       await chai
         .request(app)
-        .post(`${user_path}/${alternate_user._id}/follow`)
+        .post(`${user_path}/${alternate_user.activeUser._id}/follow`)
         .set('authorization', `Bearer ${user.token}`)
         .send();
 
       const response = await chai
         .request(app)
-        .post(`${user_path}/${alternate_user._id}/unfollow`)
+        .post(`${user_path}/${alternate_user.activeUser._id}/unfollow`)
         .set('authorization', `Bearer ${user.token}`)
         .send();
 
@@ -157,7 +158,7 @@ describe('User tests', () => {
     it('returns an error when user object isn\'t provided', async () => {
       const response = await chai
         .request(app)
-        .patch(`${user_path}/${user._id}`)
+        .patch(`${user_path}/${user.activeUser._id}`)
         .set('authorization', `Bearer ${user.token}`);
 
       const responseBody = response.body;
@@ -169,7 +170,7 @@ describe('User tests', () => {
     it('returns an error when another user tried to edit a user profile', async () => {
       const response = await chai
         .request(app)
-        .patch(`${user_path}/${user._id}`)
+        .patch(`${user_path}/${user.activeUser._id}`)
         .set('authorization', `Bearer ${alternate_user.token}`)
         .send({ user: modified_user });
 
@@ -182,7 +183,7 @@ describe('User tests', () => {
     it('returns an error when a non super user tries to suspend another user', async () => {
       const response = await chai
         .request(app)
-        .post(`${user_path}/${user._id}/suspend`)
+        .post(`${user_path}/${user.activeUser._id}/suspend`)
         .set('authorization', `Bearer ${alternate_user.token}`)
         .send({ user: { _id: user._id } });
 
@@ -196,7 +197,7 @@ describe('User tests', () => {
     it('fails when no token is provided for protected routes', async () => {
       const response = await chai
         .request(app)
-        .post(`${user_path}/${user._id}/suspend`)
+        .post(`${user_path}/${user.activeUser._id}/suspend`)
         .send({ user: { _id: user._id } });
 
       const responseBody = response.body;
@@ -210,13 +211,13 @@ describe('User tests', () => {
     it('fails to follow if user is already following', async () => {
       await chai
         .request(app)
-        .post(`${user_path}/${alternate_user._id}/follow`)
+        .post(`${user_path}/${alternate_user.activeUser._id}/follow`)
         .set('authorization', `Bearer ${user.token}`)
         .send();
 
       const response = await chai
         .request(app)
-        .post(`${user_path}/${alternate_user._id}/follow`)
+        .post(`${user_path}/${alternate_user.activeUser._id}/follow`)
         .set('authorization', `Bearer ${user.token}`)
         .send();
 
@@ -228,7 +229,7 @@ describe('User tests', () => {
     it('fails to unfollow if user isn\'t following', async () => {
       const response = await chai
         .request(app)
-        .post(`${user_path}/${alternate_user._id}/unfollow`)
+        .post(`${user_path}/${alternate_user.activeUser._id}/unfollow`)
         .set('authorization', `Bearer ${user.token}`)
         .send();
 

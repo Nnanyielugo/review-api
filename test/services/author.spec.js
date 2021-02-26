@@ -79,7 +79,7 @@ describe('Author tests', () => {
       expect(responseAuthor.date_of_birth).to.equal(valid_author.date_of_birth);
       expect(responseAuthor.date_of_death).to.equal(valid_author.date_of_death);
       expect(responseAuthor.bio).to.equal(valid_author.bio);
-      expect(responseAuthor.created_by).to.equal(user._id);
+      expect(responseAuthor.created_by).to.equal(user.activeUser._id);
     });
 
     it('list authors and sorts by family name', async () => {
@@ -111,7 +111,7 @@ describe('Author tests', () => {
       expect(responseAuthor.bio).to.equal(author.body.author.bio);
       expect(responseAuthor.date_of_birth).to.equal(author.body.author.date_of_birth);
       expect(responseAuthor.date_of_death).to.equal(author.body.author.date_of_death);
-      expect(responseAuthor.created_by._id.toString()).to.equal(user._id.toString());
+      expect(responseAuthor.created_by._id.toString()).to.equal(user.activeUser._id.toString());
     });
 
     it('modifies an existing author', async () => {
@@ -123,6 +123,7 @@ describe('Author tests', () => {
         .send({ author: modified_author });
 
       const responseAuthor = response.body.author;
+
       expect(response.status).to.equal(201);
       expect(response.body.error).to.be.undefined;
       expect(responseAuthor).to.be.an('object');
@@ -133,7 +134,7 @@ describe('Author tests', () => {
       expect(responseAuthor.bio).to.equal(modified_author.bio);
       expect(responseAuthor.date_of_birth).to.equal(modified_author.date_of_birth);
       expect(responseAuthor.date_of_death).to.equal(modified_author.date_of_death);
-      expect(responseAuthor.created_by._id.toString()).to.equal(user._id.toString());
+      expect(responseAuthor.created_by._id.toString()).to.equal(user.activeUser._id.toString());
     });
 
     it('lets a superuser edit an author it did not create', async () => {
@@ -155,7 +156,7 @@ describe('Author tests', () => {
       expect(responseAuthor.bio).to.equal(modified_author.bio);
       expect(responseAuthor.date_of_birth).to.equal(modified_author.date_of_birth);
       expect(responseAuthor.date_of_death).to.equal(modified_author.date_of_death);
-      expect(responseAuthor.created_by._id.toString()).to.equal(user._id.toString());
+      expect(responseAuthor.created_by._id.toString()).to.equal(user.activeUser._id.toString());
     });
 
     it('deletes an existing author', async () => {

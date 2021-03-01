@@ -69,7 +69,7 @@ exports.list = async function (req, res, next) {
         .skip(+offset)
         .sort({ createdAt: 'desc' })
         .populate('review_author', 'username')
-        .populate('book', 'author genre summary')
+        .populate('book', 'title author genre summary')
         .exec(),
       Review
         .countDocuments(query)

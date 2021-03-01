@@ -12,7 +12,7 @@ const {
 chai.use(chaiHttp);
 const { expect } = chai;
 
-describe('User tests', () => {
+describe.only('User tests', () => {
   const user_path = '/api/users';
   let mongoServer;
   let user;
@@ -52,6 +52,7 @@ describe('User tests', () => {
       expect(returnedUser).to.be.an('object');
       expect(returnedUser.activeUser.username).to.equal(valid_signup_user.username);
       expect(returnedUser.activeUser.email).to.equal(valid_signup_user.email.toLowerCase());
+      expect(returnedUser.activeUser.display_name).to.equal(valid_signup_user.display_name);
     });
 
     it('fetches the user object when viewing profile as other user', async () => {
@@ -81,8 +82,7 @@ describe('User tests', () => {
       expect(returnedUser).to.be.an('object');
       expect(returnedUser.activeUser.username).to.equal(modified_user.username);
       expect(returnedUser.activeUser.email).to.equal(modified_user.email.toLowerCase());
-      expect(returnedUser.activeUser.first_name).to.equal(modified_user.first_name);
-      expect(returnedUser.activeUser.family_name).to.equal(modified_user.family_name);
+      expect(returnedUser.activeUser.display_name).to.equal(modified_user.display_name);
     });
 
     it('suspends the user', async () => {

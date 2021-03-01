@@ -5,6 +5,7 @@ const cookieParser = require('cookie-parser');
 const bodyParser = require('body-parser');
 const helmet = require('helmet');
 const methodOverride = require('method-override');
+const cors = require('cors');
 
 require('./api/middleware/db');
 require('./api/middleware/passport');
@@ -14,6 +15,7 @@ const app = express();
 const isProduction = process.env.NODE_ENV === 'production';
 const isTest = process.env.NODE_ENV === 'test';
 
+app.use(cors());
 app.use(helmet());
 if (!isTest) app.use(logger('dev'));
 app.use(bodyParser.json());

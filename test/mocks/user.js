@@ -8,14 +8,14 @@ const valid_signup_user = {
   email: 'Hildegard68@yahoo.com',
   password: 'valid_password',
   username: 'Hildegard50',
-  display_name: 'Hildegard Goodwin',
+  displayname: 'Hildegard Goodwin',
 };
 
 const admin_user = {
   email: 'Juwan_Nolan6@yahoo.com',
   password: 'valid_password',
   username: 'Juwan.Nolan',
-  display_name: 'Juwan Nolan',
+  displayname: 'Juwan Nolan',
   give_admin_priviledges: true,
 };
 
@@ -23,21 +23,21 @@ const alternate_signup_user = {
   email: 'Dario.Grimes96@yahoo.com',
   password: 'valid_password',
   username: 'Dario67',
-  display_name: 'Dario Grimes',
+  displayname: 'Dario Grimes',
 };
 
 const moderator_user = {
   email: 'Jarvis_Boyer@hotmail.com',
   password: 'valid_password',
   username: 'Jarvis_Boyer',
-  display_name: 'Jarvis Boyer',
+  displayname: 'Jarvis Boyer',
   give_mod_priviledges: true,
 };
 
 const modified_user = {
   email: 'Allene29@hotmail.com',
   username: 'Allene_Kassulke',
-  display_name: 'Allene Kassulke',
+  displayname: 'Allene Kassulke',
 };
 
 module.exports.valid_signup_user = valid_signup_user;

@@ -18,7 +18,7 @@ module.exports.signup = async (req, res, next) => {
       !req.body.user.username
         || !req.body.user.password
         || !req.body.user.email
-        || !req.body.user.display_name
+        || !req.body.user.displayname
     ) {
       // generic error message since there will be frontend validation
       throw new ApiException({
@@ -30,7 +30,7 @@ module.exports.signup = async (req, res, next) => {
     const user = new User({
       username: req.body.user.username,
       email: req.body.user.email,
-      display_name: req.body.user.display_name,
+      displayname: req.body.user.displayname,
     });
 
     user.setPassword(req.body.user.password);

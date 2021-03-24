@@ -19,7 +19,6 @@ exports.preloadReview = async function (req, res, next, id) {
       });
     }
     req.review = review;
-    console.log('review', review)
     return next();
   } catch (err) {
     next(err);

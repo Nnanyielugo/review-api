@@ -116,7 +116,7 @@ exports.update = async function (req, res, next) {
       req.comment.content = req.body.comment.content;
     }
 
-    await req.comment.updateOne();
+    await req.comment.save();
     const doc = req.comment.toObjectJsonFor(user);
     return res.json({ comment: doc });
   } catch (err) {

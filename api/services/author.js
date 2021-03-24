@@ -125,7 +125,7 @@ exports.update = async function (req, res, next) {
       req.author.edited_by = user_id;
     }
 
-    await req.author.updateOne();
+    await req.author.save();
     const doc = req.author.toObjectJsonFor(req.author);
     return res.status(201).json({ author: doc });
   } catch (err) {

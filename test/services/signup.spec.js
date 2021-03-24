@@ -37,10 +37,10 @@ describe('Signup tests', () => {
       const returnedUser = response.body.user;
       expect(response.body.error).to.be.undefined;
       expect(response.status).to.equal(200);
-      expect(returnedUser.username).to.equal(valid_signup_user.username);
-      expect(returnedUser.email).to.equal(valid_signup_user.email.toLowerCase());
+      expect(returnedUser.activeUser.username).to.equal(valid_signup_user.username);
+      expect(returnedUser.activeUser.email).to.equal(valid_signup_user.email.toLowerCase());
       expect(returnedUser.token).to.exist;
-      expect(returnedUser.user_type).to.equal('user');
+      expect(returnedUser.activeUser.user_type).to.equal('user');
     });
 
     it('successfully registers admin user', async () => {
@@ -52,10 +52,10 @@ describe('Signup tests', () => {
       const returnedUser = response.body.user;
       expect(response.body.error).to.be.undefined;
       expect(response.status).to.equal(200);
-      expect(returnedUser.username).to.equal(admin_user.username);
-      expect(returnedUser.email).to.equal(admin_user.email.toLowerCase());
+      expect(returnedUser.activeUser.username).to.equal(admin_user.username);
+      expect(returnedUser.activeUser.email).to.equal(admin_user.email.toLowerCase());
       expect(returnedUser.token).to.exist;
-      expect(returnedUser.user_type).to.equal('admin');
+      expect(returnedUser.activeUser.user_type).to.equal('admin');
     });
 
     it('successfully registers moderator', async () => {
@@ -67,10 +67,10 @@ describe('Signup tests', () => {
       const returnedUser = response.body.user;
       expect(response.body.error).to.be.undefined;
       expect(response.status).to.equal(200);
-      expect(returnedUser.username).to.equal(moderator_user.username);
-      expect(returnedUser.email).to.equal(moderator_user.email.toLowerCase());
+      expect(returnedUser.activeUser.username).to.equal(moderator_user.username);
+      expect(returnedUser.activeUser.email).to.equal(moderator_user.email.toLowerCase());
       expect(returnedUser.token).to.exist;
-      expect(returnedUser.user_type).to.equal('moderator');
+      expect(returnedUser.activeUser.user_type).to.equal('moderator');
     });
   });
 

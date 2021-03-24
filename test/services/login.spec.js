@@ -40,8 +40,8 @@ describe('Login tests', () => {
       expect(response.body.error).to.be.undefined;
       expect(responseUser).to.exist;
       expect(responseUser).to.be.an('object');
-      expect(responseUser.email).to.equal(valid_login.email.toLowerCase());
-      expect(responseUser.username).to.equal(valid_signup_user.username);
+      expect(responseUser.activeUser.email).to.equal(valid_login.email.toLowerCase());
+      expect(responseUser.activeUser.username).to.equal(valid_signup_user.username);
     });
   });
 

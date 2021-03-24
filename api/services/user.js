@@ -18,8 +18,7 @@ module.exports.signup = async (req, res, next) => {
       !req.body.user.username
         || !req.body.user.password
         || !req.body.user.email
-        || !req.body.user.first_name
-        || !req.body.user.family_name
+        || !req.body.user.displayname
     ) {
       // generic error message since there will be frontend validation
       throw new ApiException({
@@ -31,8 +30,7 @@ module.exports.signup = async (req, res, next) => {
     const user = new User({
       username: req.body.user.username,
       email: req.body.user.email,
-      first_name: req.body.user.first_name,
-      family_name: req.body.user.family_name,
+      displayname: req.body.user.displayname,
     });
 
     user.setPassword(req.body.user.password);
@@ -80,7 +78,7 @@ module.exports.login = (req, res, next) => {
     }
     if (!user) {
       throw new ApiException({
-        status: 422,
+        status: 400,
         message: info.error.message,
       });
     }

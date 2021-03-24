@@ -9,8 +9,7 @@ function arrayLimit(val) {
 }
 
 const UserSchema = new mongoose.Schema({
-  first_name: { type: String, required: true, max: 100 },
-  family_name: { type: String, required: true, max: 100 },
+  displayname: { type: String, required: true, max: 100 },
   username: {
     type: String,
     required: [true, "can't be blank"],
@@ -89,17 +88,18 @@ UserSchema.methods.generateJwt = function () {
 
 UserSchema.methods.toAuthJsonFor = function () {
   return {
-    _id: this._id,
-    username: this.username,
-    email: this.email,
+    activeUser: {
+      _id: this._id,
+      username: this.username,
+      email: this.email,
+      bio: this.bio,
+      followers: this.followers,
+      image_src: this.image_src,
+      displayname: this.displayname,
+      user_type: this.user_type,
+      suspended: this.suspended,
+    },
     token: this.generateJwt(),
-    bio: this.bio,
-    followers: this.followers,
-    image_src: this.image_src,
-    first_name: this.first_name,
-    family_name: this.family_name,
-    user_type: this.user_type,
-    suspended: this.suspended,
   };
 };
 
@@ -111,8 +111,7 @@ UserSchema.methods.toObjectJsonFor = function (user) {
     following: user ? this.isFollowing(user._id) : false,
     followers: this.followers,
     follower_count: this.follower_count,
-    first_name: this.first_name,
-    family_name: this.family_name,
+    displayname: this.displayname,
     suspended: this.suspended,
   };
 };

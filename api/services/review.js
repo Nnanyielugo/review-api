@@ -69,7 +69,7 @@ exports.list = async function (req, res, next) {
         .skip(+offset)
         .sort({ createdAt: 'desc' })
         .populate('review_author', 'username')
-        .populate('book', 'author genre summary')
+        .populate('book', 'title author genre summary')
         .exec(),
       Review
         .countDocuments(query)
@@ -175,7 +175,7 @@ exports.update = async function (req, res, next) {
       req.review.tags = req.body.review.tags;
     }
 
-    await req.review.updateOne();
+    await req.review.save();
     const doc = req.review.toObjectJsonFor(user);
     return res.status(200).json({ review: doc });
 

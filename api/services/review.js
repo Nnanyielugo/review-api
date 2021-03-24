@@ -19,6 +19,7 @@ exports.preloadReview = async function (req, res, next, id) {
       });
     }
     req.review = review;
+    console.log('review', review)
     return next();
   } catch (err) {
     next(err);
@@ -175,7 +176,7 @@ exports.update = async function (req, res, next) {
       req.review.tags = req.body.review.tags;
     }
 
-    await req.review.updateOne();
+    await req.review.save();
     const doc = req.review.toObjectJsonFor(user);
     return res.status(200).json({ review: doc });
 

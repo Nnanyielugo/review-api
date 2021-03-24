@@ -119,7 +119,7 @@ exports.update = async function (req, res, next) {
       req.book.edited_by = user_id;
     }
 
-    await req.book.updateOne();
+    await req.book.save();
     const doc = req.book.toObjectJsonFor();
     return res.status(200).json({ book: doc });
   } catch (err) {

@@ -78,7 +78,7 @@ module.exports.login = (req, res, next) => {
     }
     if (!user) {
       throw new ApiException({
-        status: 422,
+        status: 400,
         message: info.error.message,
       });
     }

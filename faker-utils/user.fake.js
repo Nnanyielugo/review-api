@@ -23,15 +23,6 @@ module.exports.admin_user = () => {
   };
 };
 
-const alternate_first = faker.name.firstName();
-const alternate_last = faker.name.lastName();
-const alternate_user = {
-  email: faker.internet.email(alternate_first, alternate_last),
-  password: 'valid_password',
-  username: faker.internet.userName(alternate_first, alternate_last),
-  displayname: `${alternate_first} ${alternate_last} `,
-};
-
 module.exports.moderator_user = () => {
   const moderator_first = faker.name.firstName();
   const moderator_last = faker.name.lastName();
@@ -43,14 +34,3 @@ module.exports.moderator_user = () => {
     give_mod_priviledges: true,
   };
 };
-
-const modified_first = faker.name.firstName();
-const modified_last = faker.name.lastName();
-const modified_user = {
-  email: faker.internet.email(modified_first, modified_last),
-  username: faker.internet.userName(modified_first, modified_last),
-  displayname: `${modified_first} ${modified_last} `,
-};
-
-module.exports.alternate_user = alternate_user;
-module.exports.modified_user = modified_user;

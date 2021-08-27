@@ -3,37 +3,42 @@ const uniqueValidator = require('mongoose-unique-validator');
 
 const User = mongoose.model('User');
 
-const ReviewSchema = new mongoose.Schema({
-  review_author: {
-    type: mongoose.Schema.Types.ObjectId,
-    ref: 'User',
-    required: true,
-  },
-  book: {
-    type: mongoose.Schema.Types.ObjectId,
-    ref: 'Book',
-    required: true,
-  },
-  content: {
-    type: String,
-    required: true,
-  },
-  favorites_count: {
-    type: Number,
-    default: 0,
-  },
-  comments: [
-    {
+const ReviewSchema = new mongoose.Schema(
+  {
+    review_author: {
       type: mongoose.Schema.Types.ObjectId,
-      ref: 'Comment',
+      ref: 'User',
+      required: true,
     },
-  ],
-  // image_src: String, // TODO: implement array of images or use book image
-  tags: [{
-    type: mongoose.Schema.Types.ObjectId,
-    ref: 'Genre',
-  }],
-}, { timestamps: true });
+    book: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: 'Book',
+      required: true,
+    },
+    content: {
+      type: String,
+      required: true,
+    },
+    favorites_count: {
+      type: Number,
+      default: 0,
+    },
+    comments: [
+      {
+        type: mongoose.Schema.Types.ObjectId,
+        ref: 'Comment',
+      },
+    ],
+    // image_src: String, // TODO: implement array of images or use book image
+    tags: [
+      {
+        type: mongoose.Schema.Types.ObjectId,
+        ref: 'Genre',
+      },
+    ],
+  },
+  { timestamps: true }
+);
 
 ReviewSchema.plugin(uniqueValidator, { message: '{Path} is already taken.' });
 

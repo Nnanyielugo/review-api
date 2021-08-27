@@ -8,70 +8,81 @@ function arrayLimit(val) {
   return val.limit >= 5;
 }
 
-const UserSchema = new mongoose.Schema({
-  displayname: { type: String, required: true, max: 100 },
-  username: {
-    type: String,
-    required: [true, "can't be blank"],
-    unique: true,
-    max: 100,
-    match: [/^[a-zA-Z0-9_@.]+$/, 'is invalid'],
-    index: true,
+const UserSchema = new mongoose.Schema(
+  {
+    displayname: { type: String, required: true, max: 100 },
+    username: {
+      type: String,
+      required: [true, "can't be blank"],
+      unique: true,
+      max: 100,
+      match: [/^[a-zA-Z0-9_@.]+$/, 'is invalid'],
+      index: true,
+    },
+    email: {
+      type: String,
+      lowercase: true,
+      unique: true,
+      required: [true, "can't be blank"],
+      match: [/\S+@\S+\.\S+/, 'is invalid'],
+      index: true,
+    },
+    user_type: {
+      type: String,
+      required: true,
+      enum: ['admin', 'moderator', 'user'],
+      default: 'user',
+    },
+    image_src: { type: String },
+    bio: String,
+    date_of_birth: Date,
+    following: [{ type: mongoose.Schema.Types.ObjectId, ref: 'User' }],
+    followers: [{ type: mongoose.Schema.Types.ObjectId, ref: 'User' }],
+    follower_count: { type: Number, default: 0 },
+    hash: String,
+    salt: String,
+    suspended: {
+      type: Boolean,
+      default: false,
+    },
+    suspension_timeline: Date,
+    favorites: [
+      {
+        type: mongoose.Schema.Types.ObjectId,
+        refPath: 'on_model',
+      },
+    ],
+    on_model: {
+      type: String,
+      enum: ['Review', 'Comment'],
+    },
+    reviews: [{ type: mongoose.Schema.Types.ObjectId, ref: 'Review' }],
+    pinned_reviews: [
+      {
+        type: mongoose.Schema.Types.ObjectId,
+        ref: 'Review',
+        validate: [arrayLimit, '{PATH} exceeds limit of 5'],
+      },
+    ],
+    // pinnedComments // not sure
   },
-  email: {
-    type: String,
-    lowercase: true,
-    unique: true,
-    required: [true, "can't be blank"],
-    match: [/\S+@\S+\.\S+/, 'is invalid'],
-    index: true,
-  },
-  user_type: {
-    type: String,
-    required: true,
-    enum: ['admin', 'moderator', 'user'],
-    default: 'user',
-  },
-  image_src: { type: String },
-  bio: String,
-  date_of_birth: Date,
-  following: [{ type: mongoose.Schema.Types.ObjectId, ref: 'User' }],
-  followers: [{ type: mongoose.Schema.Types.ObjectId, ref: 'User' }],
-  follower_count: { type: Number, default: 0 },
-  hash: String,
-  salt: String,
-  suspended: {
-    type: Boolean,
-    default: false,
-  },
-  suspension_timeline: Date,
-  favorites: [{
-    type: mongoose.Schema.Types.ObjectId,
-    refPath: 'on_model',
-  }],
-  on_model: {
-    type: String,
-    enum: ['Review', 'Comment'],
-  },
-  reviews: [{ type: mongoose.Schema.Types.ObjectId, ref: 'Review' }],
-  pinned_reviews: [{
-    type: mongoose.Schema.Types.ObjectId,
-    ref: 'Review',
-    validate: [arrayLimit, '{PATH} exceeds limit of 5'],
-  }],
-  // pinnedComments // not sure
-}, { timestamps: true });
+  { timestamps: true }
+);
 
 UserSchema.plugin(uniqueValidator, { message: '{Path} is already taken.' });
 
 UserSchema.methods.validPassword = function (password) {
-  const hash = crypto.pbkdf2Sync(password, this.salt, 10000, 512, 'sha512').toString('hex');
+  const hash = crypto
+    .pbkdf2Sync(password, this.salt, 10000, 512, 'sha512')
+    .toString('hex');
   return this.hash === hash;
 };
 
 UserSchema.methods.setPassword = function (password) {
   this.salt = crypto.randomBytes(16).toString('hex');
-  this.hash = crypto.pbkdf2Sync(password, this.salt, 10000, 512, 'sha512').toString('hex');
+  this.hash = crypto
+    .pbkdf2Sync(password, this.salt, 10000, 512, 'sha512')
+    .toString('hex');
 };
 
 UserSchema.methods.generateJwt = function () {
@@ -79,11 +90,14 @@ UserSchema.methods.generateJwt = function () {
   const exp = new Date(today);
   exp.setDate(today.getDate() + 60);
 
-  return jwt.sign({
-    id: this._id,
-    username: this.username,
-    exp: parseInt(exp.getTime() / 1000, 10),
-  }, secret);
+  return jwt.sign(
+    {
+      id: this._id,
+      username: this.username,
+      exp: parseInt(exp.getTime() / 1000, 10),
+    },
+    secret
+  );
 };
 
 UserSchema.methods.toAuthJsonFor = function () {
@@ -132,7 +146,9 @@ UserSchema.methods.unfavorite = function (id) {
 };
 
 UserSchema.methods.isFavorite = function (id) {
-  return this.favorites.some((favoriteId) => favoriteId.toString() === id.toString());
+  return this.favorites.some(
+    (favoriteId) => favoriteId.toString() === id.toString()
+  );
 };
 
 UserSchema.methods.addFollower = function (profile, user) {
@@ -184,7 +200,9 @@ UserSchema.methods.unfollow = function (target_user) {
 };
 
 UserSchema.methods.isFollowing = function (id) {
-  return this.following.some((followId) => followId.toString() === id.toString());
+  return this.following.some(
+    (followId) => followId.toString() === id.toString()
+  );
 };
 
 UserSchema.methods.updateFollowerCount = async function (count) {

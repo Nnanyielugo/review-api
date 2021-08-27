@@ -1,3 +1,4 @@
 node_modules/
 config/
 .nyc_output/
+**/.DS_Store

@@ -18,7 +18,15 @@ router.get('/:review/comments', auth.optional, comments.get);
 router.post('/:review/comments', auth.required, comments.create);
 router.patch('/:review/comments/:comment', auth.required, comments.update);
 router.delete('/:review/comments/:comment', auth.required, comments.delete);
-router.post('/:review/comments/:comment/favorite', auth.required, comments.favorite);
-router.post('/:review/comments/:comment/unfavorite', auth.required, comments.unfavorite);
+router.post(
+  '/:review/comments/:comment/favorite',
+  auth.required,
+  comments.favorite
+);
+router.post(
+  '/:review/comments/:comment/unfavorite',
+  auth.required,
+  comments.unfavorite
+);
 
 module.exports = router;

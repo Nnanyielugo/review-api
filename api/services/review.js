@@ -7,9 +7,11 @@ const Book = model('Book');
 
 exports.preloadReview = async function (req, res, next, id) {
   try {
-    const review = await Review
-      .findById(id)
-      .populate('review_author', 'username follower_count first_name family_name following')
+    const review = await Review.findById(id)
+      .populate(
+        'review_author',
+        'username follower_count first_name family_name following'
+      )
       .populate('book', 'title summary author');
 
     if (!review) {
@@ -42,15 +44,12 @@ exports.list = async function (req, res, next) {
     }
 
     // find author and favoriter if they were specified in query
-    const [author, favoriter] = await Promise
-      .all([
-        req.query.author
-          ? User.findOne({ username: req.query.author })
-          : null,
-        req.query.favorited
-          ? User.findOne({ username: req.query.favorited })
-          : null,
-      ]);
+    const [author, favoriter] = await Promise.all([
+      req.query.author ? User.findOne({ username: req.query.author }) : null,
+      req.query.favorited
+        ? User.findOne({ username: req.query.favorited })
+        : null,
+    ]);
 
     if (author) {
       query.author = author._id;
@@ -63,20 +62,15 @@ exports.list = async function (req, res, next) {
     }
 
     const [reviews, reviewsCount, user] = await Promise.all([
-      Review
-        .find(query)
+      Review.find(query)
         .limit(+limit)
         .skip(+offset)
         .sort({ createdAt: 'desc' })
-        .populate('review_author', 'username')
+        .populate('review_author')
         .populate('book', 'title author genre summary')
         .exec(),
-      Review
-        .countDocuments(query)
-        .exec(),
-      req.payload
-        ? User.findById(req.payload.id)
-        : null,
+      Review.countDocuments(query).exec(),
+      req.payload ? User.findById(req.payload.id) : null,
     ]);
     return res.json({
       reviews: reviews.map((review) => review.toObjectJsonFor(user)),
@@ -84,14 +78,19 @@ exports.list = async function (req, res, next) {
     });
   } catch (err) {
     next(err);
+    throw err;
   }
 };
 
 exports.get = async function (req, res, next) {
   try {
-    const user = await User.findById(req.payload.id);
-    return res.json({ review: req.review.toObjectJsonFor(user) });
+    if (req.payload) {
+      const user = await User.findById(req.payload.id);
+      return res.json({ review: req.review.toObjectJsonFor(user) });
+    }
+    return res.json({ review: req.review.toObjectJsonFor() });
   } catch (err) {
+    console.log('error', err);
     next(err);
   }
 };
@@ -105,12 +104,8 @@ exports.create = async function (req, res, next) {
       });
     }
     const [user, book] = await Promise.all([
-      User
-        .findById(req.payload.id)
-        .exec(),
-      Book
-        .findById(req.body.review.book_id)
-        .exec(),
+      User.findById(req.payload.id).exec(),
+      Book.findById(req.body.review.book_id).exec(),
     ]);
     if (!user) {
       return new ApiException({ status: 401 });
@@ -197,10 +192,13 @@ exports.delete = async function (req, res, next) {
       });
     }
 
-    if ((req.review.review_author._id.toString() !== user_id.toString())
-      && user.user_type !== 'admin') {
+    if (
+      req.review.review_author._id.toString() !== user_id.toString() &&
+      user.user_type !== 'admin'
+    ) {
       throw new ApiException({
-        message: 'You must either be review creator or an admin to delete this review',
+        message:
+          'You must either be review creator or an admin to delete this review',
         status: 403,
       });
     }

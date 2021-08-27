@@ -15,10 +15,10 @@ module.exports.signup = async (req, res, next) => {
     }
 
     if (
-      !req.body.user.username
-        || !req.body.user.password
-        || !req.body.user.email
-        || !req.body.user.displayname
+      !req.body.user.username ||
+      !req.body.user.password ||
+      !req.body.user.email ||
+      !req.body.user.displayname
     ) {
       // generic error message since there will be frontend validation
       throw new ApiException({
@@ -60,14 +60,14 @@ module.exports.login = (req, res, next) => {
 
   if (!req.body.user.email) {
     throw new ApiException({
-      message: 'Email can\'t be blank',
+      message: "Email can't be blank",
       status: 422,
     });
   }
 
   if (!req.body.user.password) {
     throw new ApiException({
-      message: 'Password can\'t be blank',
+      message: "Password can't be blank",
       status: 422,
     });
   }
@@ -107,7 +107,7 @@ module.exports.get = async (req, res, next) => {
     // change returned object depending on who is making the request
     if (req.payload) {
       if (req.payload.id.toString() === user._id.toString()) {
-        return res.json({ user: user.toAuthJsonFor() });
+        return res.json({ user: user.toObjectJsonFor() });
       }
       const viewing_user = await User.findById(req.payload.id);
       return res.json({ user: user.toObjectJsonFor(viewing_user) });
@@ -130,11 +130,13 @@ module.exports.update = async (req, res, next) => {
     const request_user = await User.findById(req.params.id);
     if (request_user._id.toString() !== req.payload.id.toString()) {
       throw new ApiException({
-        message: 'Cannot edit another user\'s profile!',
+        message: "Cannot edit another user's profile!",
         status: 400,
       });
     }
-    const user = await User.findByIdAndUpdate(req.payload.id, req.body.user, { new: true });
+    const user = await User.findByIdAndUpdate(req.payload.id, req.body.user, {
+      new: true,
+    });
     if (!user) {
       throw new ApiException({ status: 401 });
     }
@@ -150,9 +152,13 @@ module.exports.suspend = async (req, res, next) => {
     if (!super_user) {
       throw new ApiException({ status: 401 });
     }
-    if (super_user.user_type !== 'admin' && super_user.user_type !== 'moderator') {
+    if (
+      super_user.user_type !== 'admin' &&
+      super_user.user_type !== 'moderator'
+    ) {
       throw new ApiException({
-        message: 'You have to be an admin or a moderator to perform this action',
+        message:
+          'You have to be an admin or a moderator to perform this action',
         status: 401,
       });
     }
@@ -201,7 +207,7 @@ module.exports.unfollow = async (req, res, next) => {
     }
     if (!user.isFollowing(target_user._id)) {
       throw new ApiException({
-        message: 'You don\'t follow this user',
+        message: "You don't follow this user",
         status: 400,
       });
     }

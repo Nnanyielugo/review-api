@@ -23,7 +23,7 @@
     "helmet": "^3.22.0",
     "jsonwebtoken": "^8.5.1",
     "method-override": "^3.0.0",
-    "moment": "^2.25.3",
+    "moment": "^2.29.4",
     "mongoose": "^5.9.13",
     "mongoose-unique-validator": "^2.0.3",
     "morgan": "^1.10.0",
